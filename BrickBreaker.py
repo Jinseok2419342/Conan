@@ -25,7 +25,7 @@ colors = [
 # 공과 패들 설정
 ball_speed = [6, 6]
 ball = pygame.Rect(width // 2, height // 2, 20, 20) # 공 크기
-paddle = pygame.Rect(width // 2 - 30, height - 20, 60, 10)
+paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 
 # 벽돌 설정
 brick_width, brick_height = 50, 20
@@ -52,9 +52,9 @@ while True:
     # 키 입력
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] and paddle.left > 0:
-        paddle.move_ip(-5, 0)
+        paddle.move_ip(-15, 0)
     if keys[pygame.K_RIGHT] and paddle.right < width:
-        paddle.move_ip(5, 0)
+        paddle.move_ip(15, 0)
 
     # 공 이동
     ball.move_ip(ball_speed)
