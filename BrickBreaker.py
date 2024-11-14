@@ -71,6 +71,11 @@ while True:
             ball_speed[1] = -ball_speed[1]
             bricks.remove((brick, color))  # 부딪힌 벽돌 제거
             break
+    
+    # 공이 바닥에 닿으면 게임 오버
+    if ball.bottom >= height:
+        pygame.quit()
+        sys.exit()
 
     # 화면 그리기
     screen.fill(BLACK)
@@ -80,5 +85,4 @@ while True:
         pygame.draw.rect(screen, color, brick)  # 각 벽돌에 지정된 색상으로 그리기
     pygame.display.flip()
     
-    # 프레임 조절
-    pygame.time.Clock().tick(120)
+    pygame.time.Clock().tick(60)
