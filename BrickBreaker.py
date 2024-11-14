@@ -23,8 +23,8 @@ colors = [
 ]
 
 # 공과 패들 설정
-ball_speed = [3, 3]
-ball = pygame.Rect(width // 2, height // 2, 10, 10)
+ball_speed = [6, 6]
+ball = pygame.Rect(width // 2, height // 2, 20, 20) # 공 크기
 paddle = pygame.Rect(width // 2 - 30, height - 20, 60, 10)
 
 # 벽돌 설정
