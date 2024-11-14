@@ -4,8 +4,8 @@ import sys
 # 초기화
 pygame.init()
 
-# 화면 설정
-width, height = 400, 300
+# 화면 설정 (해상도 증가)
+width, height = 1024, 768
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("벽돌깨기")
 
@@ -18,6 +18,8 @@ colors = [
     (255, 127, 80),  # 1번줄: 코랄
     (127, 255, 0),   # 2번줄: 차트리우스
     (0, 191, 255),   # 3번줄: 딥 스카이 블루
+    (255, 215, 0),   # 4번줄: 골드
+    (138, 43, 226)   # 5번줄: 블루바이올렛
 ]
 
 # 공과 패들 설정
@@ -68,11 +70,11 @@ while True:
         ball_speed[1] = -ball_speed[1]
 
     # 벽돌과 충돌
-    for brick, color in bricks[:]:  # 벽돌 리스트 복사본으로 반복
+    for brick, color in bricks[:]:
         if ball.colliderect(brick):
             ball_speed[1] = -ball_speed[1]
-            bricks.remove((brick, color))  # 부딪힌 벽돌 제거
-            score += 1  # 점수 증가
+            bricks.remove((brick, color))
+            score += 10
             break
     
     # 공이 바닥에 닿으면 게임 오버
@@ -85,7 +87,7 @@ while True:
     pygame.draw.ellipse(screen, WHITE, ball)
     pygame.draw.rect(screen, WHITE, paddle)
     for brick, color in bricks:
-        pygame.draw.rect(screen, color, brick)  # 각 벽돌에 지정된 색상으로 그리기
+        pygame.draw.rect(screen, color, brick)
 
     # 점수 표시
     score_text = font.render(f"Score: {score}", True, WHITE)
@@ -94,4 +96,3 @@ while True:
     pygame.display.flip()
     
     pygame.time.Clock().tick(60)
-
