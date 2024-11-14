@@ -13,6 +13,15 @@ pygame.display.set_caption("벽돌깨기")
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+# 행별 고정 색상 리스트
+colors = [
+    # 맨 위부터 지정
+    (255, 127, 80), # 1번줄: (코랄)
+    (127, 255, 0), # 2번줄: (차트리우스)
+    (0, 191, 255), # 3번줄: (딥 스카이 블루)
+
+]
+
 # 공과 패들 설정
 ball_speed = [3, 3]
 ball = pygame.Rect(width // 2, height // 2, 10, 10)
@@ -22,9 +31,11 @@ paddle = pygame.Rect(width // 2 - 30, height - 20, 60, 10)
 brick_width, brick_height = 50, 20
 bricks = []
 for row in range(3):
+    color = colors[row]  # 각 행에 지정된 색상 적용
     for col in range(7):
+        # 벽돌 생성 및 색상 저장
         brick = pygame.Rect(10 + col * (brick_width + 5), 10 + row * (brick_height + 5), brick_width, brick_height)
-        bricks.append(brick)
+        bricks.append((brick, color))
 
 # 게임 루프
 while True:
@@ -55,24 +66,19 @@ while True:
         ball_speed[1] = -ball_speed[1]
 
     # 벽돌과 충돌
-    for brick in bricks[:]:  # 벽돌 리스트 복사본으로 반복
+    for brick, color in bricks[:]:  # 벽돌 리스트 복사본으로 반복
         if ball.colliderect(brick):
             ball_speed[1] = -ball_speed[1]
-            bricks.remove(brick)  # 부딪힌 벽돌 제거
+            bricks.remove((brick, color))  # 부딪힌 벽돌 제거
             break
-
-    # 공이 바닥에 닿으면 게임 오버
-    if ball.bottom >= height:
-        pygame.quit()
-        sys.exit()
 
     # 화면 그리기
     screen.fill(BLACK)
     pygame.draw.ellipse(screen, WHITE, ball)
     pygame.draw.rect(screen, WHITE, paddle)
-    for brick in bricks:
-        pygame.draw.rect(screen, WHITE, brick)
+    for brick, color in bricks:
+        pygame.draw.rect(screen, color, brick)  # 각 벽돌에 지정된 색상으로 그리기
     pygame.display.flip()
     
     # 프레임 조절
-    pygame.time.Clock().tick(60)
+    pygame.time.Clock().tick(120)
