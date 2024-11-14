@@ -81,4 +81,4 @@ while True:
     pygame.display.flip()
     
     # 프레임 조절
-    pygame.time.Clock().tick(60)
+    pygame.time.Clock().tick(120)
