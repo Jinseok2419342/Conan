@@ -28,12 +28,11 @@ ball = pygame.Rect(width // 2, height // 2, 20, 20) # 공 크기
 paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 
 # 벽돌 설정
-brick_width, brick_height = 50, 20
+brick_width, brick_height = 79, 30  # 벽돌 크기 조정
 bricks = []
-for row in range(3):
-    color = colors[row]  # 각 행에 지정된 색상 적용
-    for col in range(7):
-        # 벽돌 생성 및 색상 저장
+for row in range(5):  # 벽돌 행 개수 증가
+    color = colors[row % len(colors)]
+    for col in range(12):  # 열 개수 증가
         brick = pygame.Rect(10 + col * (brick_width + 5), 10 + row * (brick_height + 5), brick_width, brick_height)
         bricks.append((brick, color))
 
