@@ -23,10 +23,6 @@ colors = [
     (138, 43, 226)   # 5번줄: 블루바이올렛
 ]
 
-# 공과 패들 설정
-ball_speed = [6, 6]
-ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공 크기
-paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 
 # 벽돌 설정
 brick_width, brick_height = 79, 30
@@ -69,9 +65,9 @@ def show_start_screen():
 # 게임 초기화 함수
 def reset_game():
     global ball, paddle, bricks, score, ball_speed
-    ball = pygame.Rect(width // 2, height // 2, 20, 20)
-    paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
-
+    ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공 위치 초기화
+    paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)  # 패들 위치 초기화
+    
     bricks.clear()
     for row in range(5):
         color = colors[row % len(colors)]
@@ -80,8 +76,8 @@ def reset_game():
             brick = pygame.Rect(10 + col * (brick_width + 5), score_area_height + 10 + row * (brick_height + 5), brick_width, brick_height)
             bricks.append((brick, color))
 
-    score = 0
-    ball_speed = [6, 6]
+    score = 0  # 점수 초기화
+    ball_speed = [6, 6]  # 공 속도 초기화
 
 # 게임 오버 상태 처리 함수
 def game_over():
@@ -102,6 +98,7 @@ def game_over():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     waiting_for_restart = False
+                    reset_game()  # 게임 재시작 시 게임 초기화
                     return True
     return False
 
