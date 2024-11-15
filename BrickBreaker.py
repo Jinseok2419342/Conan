@@ -12,7 +12,6 @@ pygame.display.set_caption("벽돌깨기")
 # 색상
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
 
 # 행별 고정 색상 리스트
 colors = [
@@ -31,28 +30,51 @@ paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 # 벽돌 설정
 brick_width, brick_height = 79, 30  # 벽돌 크기 조정
 bricks = []
-for row in range(5):  # 벽돌 행 개수 증가
+for row in range(1):  # 벽돌 행 개수를 5로 증가
     color = colors[row % len(colors)]
-    for col in range(12):  # 열 개수 증가
-        brick = pygame.Rect(10 + col * (brick_width + 5), 10 + row * (brick_height + 5), brick_width, brick_height)
+    for col in range(12):  # 열 개수는 유지
+        brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
         bricks.append((brick, color))
 
 # 점수 초기화
 score = 0
 font = pygame.font.Font(None, 36)
 
-# 게임 오버 상태 처리 함수
-def game_over():
-    game_over_text = font.render("Game Over", True, WHITE)
-    restart_text = font.render("Press 'R' to Restart", True, WHITE)
-    
-    # 게임 오버 화면 그리기
+# 투명 블록 설정
+score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
+score_bar = pygame.Rect(0, 0, width, score_bar_height)
+
+# 텍스트를 가운데 정렬하는 함수
+def draw_centered_text(text, y_offset):
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect(center=(width // 2, height // 2 + y_offset))
+    screen.blit(text_surface, text_rect)
+
+# 시작 화면 함수
+def show_start_screen():
     screen.fill(BLACK)
-    screen.blit(game_over_text, (width // 2 - 100, height // 2 - 50))
-    screen.blit(restart_text, (width // 2 - 150, height // 2 + 10))
+    draw_centered_text("Brick Breaker", -50)
+    draw_centered_text("Press Space To Start", 10)
     pygame.display.flip()
 
-    # 'R' 키를 눌러서 게임을 다시 시작
+    waiting_for_start = True
+    while waiting_for_start:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:  # 스페이스바로 시작
+                    waiting_for_start = False
+                    return
+
+# 게임 오버 상태 처리 함수
+def game_over():
+    screen.fill(BLACK)
+    draw_centered_text("Game Over", -50)
+    draw_centered_text("Press Space To Restart", 10)
+    pygame.display.flip()
+
     waiting_for_restart = True
     while waiting_for_restart:
         for event in pygame.event.get():
@@ -60,19 +82,10 @@ def game_over():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:  # 'R' 키가 눌리면 게임 재시작
+                if event.key == pygame.K_SPACE:  # 스페이스바로 재시작
                     waiting_for_restart = False
-                    return True  # 게임을 재시작하려면 True 반환
+                    return True
     return False
-
-# 게임 승리 처리 함수
-def game_win():
-    win_text = font.render("You Win!", True, WHITE)
-    screen.blit(win_text, (width // 2 - 100, height // 2 - 50))
-    pygame.display.flip()
-    pygame.time.delay(2000)
-    pygame.quit()
-    sys.exit()
 
 # 게임 초기화 함수
 def reset_game():
@@ -83,19 +96,29 @@ def reset_game():
     
     # 벽돌 초기화
     bricks = []
-    for row in range(5):
+    for row in range(5):  # 벽돌 행 개수를 5로 증가
         color = colors[row % len(colors)]
         for col in range(12):
-            brick = pygame.Rect(10 + col * (brick_width + 5), 10 + row * (brick_height + 5), brick_width, brick_height)
+            brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
             bricks.append((brick, color))
     
     # 점수 및 공 속도 초기화
     score = 0
     ball_speed = [6, 6]
 
-# 게임 루프
+# 메인 게임 루프
+first_game = True  # 처음 실행 여부 확인 변수
+
 while True:
-    reset_game()  # 게임 시작 시 초기화
+    if first_game:  # 첫 번째 게임 시작 전만 "시작 화면" 표시
+        show_start_screen()
+        first_game = False
+    else:  # 이후에는 게임 오버 후 바로 재시작
+        if not game_over():
+            pygame.quit()
+            sys.exit()
+
+    reset_game()  # 게임 초기화
 
     # 게임 루프
     while True:
@@ -125,6 +148,10 @@ while True:
         if ball.colliderect(paddle):
             ball_speed[1] = -ball_speed[1]
 
+        # 투명 블록과 충돌 처리 (공의 속도와 점수 변화 없음)
+        if ball.colliderect(score_bar):
+            ball_speed[1] = -ball_speed[1]
+
         # 벽돌과 충돌
         for brick, color in bricks[:]:
             if ball.colliderect(brick):
@@ -137,8 +164,7 @@ while True:
 
         # 공이 바닥에 닿으면 게임 오버
         if ball.bottom >= height:
-            if game_over():  # 게임 오버 후 'R' 키로 다시 시작
-                break
+            break  # 게임 오버 시 루프 종료
 
         # 공 속도 증가 (점수에 비례해서 속도 조정)
         if score % 100 == 0 and score > 0:
@@ -149,6 +175,10 @@ while True:
         screen.fill(BLACK)
         pygame.draw.ellipse(screen, WHITE, ball)
         pygame.draw.rect(screen, WHITE, paddle)
+
+        # 점수 아래 흰 줄 그리기
+        pygame.draw.line(screen, WHITE, (0, score_bar_height - 20), (width, score_bar_height - 20), 2)
+
         for brick, color in bricks:
             pygame.draw.rect(screen, color, brick)
 
