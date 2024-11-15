@@ -24,7 +24,7 @@ colors = [
 
 # 공과 패들 설정
 ball_speed = [6, 6]
-ball = pygame.Rect(width // 2, height // 2, 20, 20) # 공 크기
+ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공 크기
 paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 
 # 벽돌 설정
@@ -39,6 +39,24 @@ for row in range(5):  # 벽돌 행 개수 증가
 # 점수 초기화
 score = 0
 font = pygame.font.Font(None, 36)
+
+# 게임 오버 상태 처리 함수
+def game_over():
+    game_over_text = font.render("Game Over", True, WHITE)
+    screen.blit(game_over_text, (width // 2 - 100, height // 2 - 50))
+    pygame.display.flip()
+    pygame.time.delay(2000)
+    pygame.quit()
+    sys.exit()
+
+# 게임 승리 처리 함수
+def game_win():
+    win_text = font.render("You Win!", True, WHITE)
+    screen.blit(win_text, (width // 2 - 100, height // 2 - 50))
+    pygame.display.flip()
+    pygame.time.delay(2000)
+    pygame.quit()
+    sys.exit()
 
 # 게임 루프
 while True:
@@ -57,7 +75,7 @@ while True:
 
     # 공 이동
     ball.move_ip(ball_speed)
-    
+
     # 벽에 부딪히면 반사
     if ball.left <= 0 or ball.right >= width:
         ball_speed[0] = -ball_speed[0]
@@ -74,12 +92,18 @@ while True:
             ball_speed[1] = -ball_speed[1]
             bricks.remove((brick, color))
             score += 10
+            if len(bricks) == 0:  # 벽돌이 모두 깨지면 승리 처리
+                game_win()
             break
-    
+
     # 공이 바닥에 닿으면 게임 오버
     if ball.bottom >= height:
-        pygame.quit()
-        sys.exit()
+        game_over()
+
+    # 공 속도 증가 (점수에 비례해서 속도 조정)
+    if score % 100 == 0 and score > 0:
+        ball_speed[0] += 1
+        ball_speed[1] += 1
 
     # 화면 그리기
     screen.fill(BLACK)
@@ -93,5 +117,5 @@ while True:
     screen.blit(score_text, (10, 10))
 
     pygame.display.flip()
-    
+
     pygame.time.Clock().tick(60)
