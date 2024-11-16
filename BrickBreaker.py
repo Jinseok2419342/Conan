@@ -30,7 +30,7 @@ paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
 # 벽돌 설정
 brick_width, brick_height = 79, 30  # 벽돌 크기 조정
 bricks = []
-for row in range(1):  # 벽돌 행 개수를 5로 증가
+for row in range(5):  # 벽돌 행 개수를 5로 증가
     color = colors[row % len(colors)]
     for col in range(12):  # 열 개수는 유지
         brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
@@ -38,11 +38,21 @@ for row in range(1):  # 벽돌 행 개수를 5로 증가
 
 # 점수 초기화
 score = 0
+collision_count = 0  # 충돌 횟수 초기화
 font = pygame.font.Font(None, 36)
+
+# 공 속도 상한 설정
+MAX_SPEED = 9  # 초기 속도 6의 1.5배
 
 # 투명 블록 설정
 score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
 score_bar = pygame.Rect(0, 0, width, score_bar_height)
+
+# 패들과 공의 충돌 여부
+paddle_bumped = 0
+
+# 투명 블록과 공의 충돌 여부
+score_bar_bumped = 0
 
 # 텍스트를 가운데 정렬하는 함수
 def draw_centered_text(text, y_offset):
@@ -89,7 +99,7 @@ def game_over():
 
 # 게임 초기화 함수
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed
+    global ball, paddle, bricks, score, ball_speed, collision_count, paddle_bumped, score_bar_bumped
     # 공과 패들 초기화
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
@@ -104,7 +114,10 @@ def reset_game():
     
     # 점수 및 공 속도 초기화
     score = 0
+    collision_count = 0  # 충돌 횟수 초기화
     ball_speed = [6, 6]
+    paddle_bumped = 0  # 충돌 여부 초기화
+    score_bar_bumped = 0 # 충돌 여부 초기화
 
 # 메인 게임 루프
 first_game = True  # 처음 실행 여부 확인 변수
@@ -115,6 +128,8 @@ while True:
         first_game = False
     else:  # 이후에는 게임 오버 후 바로 재시작
         if not game_over():
+            paddle_bumped = 0
+            score_bar_bumped = 0
             pygame.quit()
             sys.exit()
 
@@ -145,12 +160,24 @@ while True:
             ball_speed[1] = -ball_speed[1]
 
         # 패들과 충돌
-        if ball.colliderect(paddle):
-            ball_speed[1] = -ball_speed[1]
+        if paddle_bumped <= 0:  # 쿨다운이 비활성화 상태일 때만 충돌 처리
+            if ball.colliderect(paddle):
+                paddle_bumped = 1
+                # 충돌한 위치 판별
+                if ball.colliderect(paddle):
+                    ball_speed[1] = -ball_speed[1]
+                    if ball.centerx < paddle.left:  # 패들의 왼쪽에 닿았을 경우
+                        ball_speed[0] = -abs(ball_speed[0])  # X축 방향 왼쪽으로 반전
+                    elif ball.centerx > paddle.right:  # 패들의 오른쪽에 닿았을 경우
+                        ball_speed[0] = abs(ball_speed[0])  # X축 방향 오른쪽으로 반전
+            paddle_bumped = 0    
 
         # 투명 블록과 충돌 처리 (공의 속도와 점수 변화 없음)
-        if ball.colliderect(score_bar):
-            ball_speed[1] = -ball_speed[1]
+        if score_bar_bumped <= 0:
+            if ball.colliderect(score_bar):
+                score_bar_bumped = 1
+                ball_speed[1] = -ball_speed[1]
+            score_bar_bumped = 0
 
         # 벽돌과 충돌
         for brick, color in bricks[:]:
@@ -158,6 +185,10 @@ while True:
                 ball_speed[1] = -ball_speed[1]
                 bricks.remove((brick, color))
                 score += 10
+                collision_count += 1  # 충돌 횟수 증가
+                if collision_count % 10 == 0:  # 10번 충돌마다 속도 증가
+                    ball_speed[0] += 1 if ball_speed[0] > 0 else -1
+                    ball_speed[1] += 1 if ball_speed[1] > 0 else -1
                 if len(bricks) == 0:  # 벽돌이 모두 깨지면 승리 처리
                     game_win()
                 break
@@ -166,10 +197,11 @@ while True:
         if ball.bottom >= height:
             break  # 게임 오버 시 루프 종료
 
-        # 공 속도 증가 (점수에 비례해서 속도 조정)
-        if score % 100 == 0 and score > 0:
-            ball_speed[0] += 1
-            ball_speed[1] += 1
+        # 공 속도 제한
+        if abs(ball_speed[0]) > MAX_SPEED:
+            ball_speed[0] = MAX_SPEED if ball_speed[0] > 0 else -MAX_SPEED
+        if abs(ball_speed[1]) > MAX_SPEED:
+            ball_speed[1] = MAX_SPEED if ball_speed[1] > 0 else -MAX_SPEED
 
         # 화면 그리기
         screen.fill(BLACK)
