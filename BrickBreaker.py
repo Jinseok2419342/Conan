@@ -38,6 +38,7 @@ for row in range(5):  # 벽돌 행 개수를 5로 증가
 
 # 점수 초기화
 score = 0
+game_count = 0 # 게임 판 수 카운트
 collision_count = 0  # 충돌 횟수 초기화
 font = pygame.font.Font(None, 36)
 
@@ -53,7 +54,8 @@ paddle_cooldown_timer = 0
 PADDLE_COOLDOWN_DURATION = 200  # 0.2초
 
 # 텍스트를 가운데 정렬하는 함수
-def draw_centered_text(text, y_offset):
+def draw_centered_text(text, y_offset, size=36):
+    text_font = pygame.font.Font(None, size)
     text_surface = font.render(text, True, WHITE)
     text_rect = text_surface.get_rect(center=(width // 2, height // 2 + y_offset))
     screen.blit(text_surface, text_rect)
@@ -61,7 +63,7 @@ def draw_centered_text(text, y_offset):
 # 시작 화면 함수
 def show_start_screen():
     screen.fill(BLACK)
-    draw_centered_text("Brick Breaker", -50)
+    draw_centered_text("Brick Breaker", -50, size=72)
     draw_centered_text("Press Space To Start", 10)
     pygame.display.flip()
 
@@ -76,10 +78,30 @@ def show_start_screen():
                     waiting_for_start = False
                     return
 
+# 게임 클리어 화면
+def game_win():
+    screen.fill(BLACK)
+    draw_centered_text("GAME CLEAR", -50, size=72)
+    draw_centered_text("Press Space To Restart", 10)
+    pygame.display.flip()
+
+    waiting_for_restart = True
+    while waiting_for_restart:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting_for_restart = False
+                    return True
+    return False
+
+
 # 게임 오버 상태 처리 함수
 def game_over():
     screen.fill(BLACK)
-    draw_centered_text("Game Over", -50)
+    draw_centered_text("Game Over", -50, size=72)
     draw_centered_text("Press Space To Restart", 10)
     pygame.display.flip()
 
@@ -95,30 +117,29 @@ def game_over():
                     return True
     return False
 
-# 게임 초기화 함수
+# 게임이 종료되고 다시 시작될때마다 초기화
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, paddle_cooldown_timer
+    global ball, paddle, bricks, score, ball_speed, collision_count
     # 공과 패들 초기화
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     
-    # 벽돌 초기화
-    bricks = []
-    for row in range(5):  # 벽돌 행 개수를 5로 증가
+    # 블록 초기화
+    bricks = []  # 블록 리스트를 완전히 새로 생성
+    for row in range(5):  # 행 수
         color = colors[row % len(colors)]
-        for col in range(12):
+        for col in range(12):  # 열 수
             brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
             bricks.append((brick, color))
     
     # 점수 및 공 속도 초기화
     score = 0
-    collision_count = 0  # 충돌 횟수 초기화
+    collision_count = 0
     ball_speed = [6, 6]
-    paddle_cooldown_timer = 0  # 쿨다운 초기화
+
 
 # 메인 게임 루프
 first_game = True  # 처음 실행 여부 확인 변수
-
 while True:
     if first_game:  # 첫 번째 게임 시작 전만 "시작 화면" 표시
         show_start_screen()
@@ -127,7 +148,8 @@ while True:
         if not game_over():
             pygame.quit()
             sys.exit()
-
+    
+    game_count += 1
     reset_game()  # 게임 초기화
 
     # 게임 루프
@@ -154,15 +176,12 @@ while True:
         if ball.top <= 0:
             ball_speed[1] = -ball_speed[1]
 
-        # 패들과 충돌
-        if paddle_cooldown_timer <= 0:  # 쿨다운이 비활성화 상태일 때만 충돌 처리
-            if ball.colliderect(paddle):
-                ball_speed[1] = -ball_speed[1]  # Y축 방향 반전
-                if ball.centerx < paddle.left:  # 패들의 왼쪽에 닿았을 경우
-                    ball_speed[0] = -abs(ball_speed[0])  # X축 방향 왼쪽으로 반전
-                elif ball.centerx > paddle.right:  # 패들의 오른쪽에 닿았을 경우
-                    ball_speed[0] = abs(ball_speed[0])  # X축 방향 오른쪽으로 반전
-                paddle_cooldown_timer = PADDLE_COOLDOWN_DURATION  # 쿨다운 시작
+        # 패들과 충돌 (정확도 개선 및 쿨다운 제거)
+        if ball.colliderect(paddle):  # 충돌이 발생했을 때
+            ball.top = paddle.top - ball.height  # 공을 패들 위로 이동
+            ball_speed[1] = -abs(ball_speed[1])  # 공의 Y축 방향 반전
+            diff = ball.centerx - paddle.centerx  # 공과 패들의 중심 차이 계산
+            ball_speed[0] += diff // 10  # 차이에 따라 공의 X축 속도 조정
 
         # 쿨다운 타이머 업데이트
         if paddle_cooldown_timer > 0:
@@ -183,7 +202,10 @@ while True:
                     ball_speed[0] += 1 if ball_speed[0] > 0 else -1
                     ball_speed[1] += 1 if ball_speed[1] > 0 else -1
                 if len(bricks) == 0:  # 벽돌이 모두 깨지면 승리 처리
-                    game_win()
+                    game_win()  # 승리 화면 표시
+                    reset_game()  # 게임 초기화
+                    break  # 현재 루프 종료하고 다음 루프 시작
+
                 break
 
         # 공이 바닥에 닿으면 게임 오버
@@ -211,6 +233,9 @@ while True:
         score_text = font.render(f"Score: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
-        pygame.display.flip()
+        # 게임 횟수 표시
+        game_count_text = font.render(f"Games: {game_count}", True, WHITE)
+        screen.blit(game_count_text, (width - 150, 10))
 
+        pygame.display.flip()
         pygame.time.Clock().tick(60)
