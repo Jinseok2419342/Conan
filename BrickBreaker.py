@@ -23,6 +23,9 @@ colors = [
     (138, 43, 226)   # 5번줄: 블루바이올렛
 ]
 
+paused_start_time = 0  # 일시정지 시작 시간을 기록
+paused_total_time = 0  # 일시정지 중 누적된 시간
+
 # 공과 패들 설정
 initial_ball_speed = [6, 6]  # 공의 초기 속도
 ball_speed = initial_ball_speed.copy()  # 공 속도 복사하여 사용
@@ -189,8 +192,7 @@ while True:
 
     # 게임 루프
     while True:
-        # 게임 경과 시간 계산 (초기화된 시간 기준)
-        current_time = pygame.time.get_ticks() - play_time_start
+        current_time = pygame.time.get_ticks() - play_time_start - paused_total_time
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -199,6 +201,11 @@ while True:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:  # ESC 키로 일시정지 토글
                     paused = not paused
+                    if paused:
+                        paused_start_time = pygame.time.get_ticks()  # 일시정지 시작 시간 기록
+                    else:
+                        paused_total_time += pygame.time.get_ticks() - paused_start_time  # 일시정지 시간 누적
+
 
         # 일시정지 상태 처리
         if paused:
