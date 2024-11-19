@@ -37,7 +37,7 @@ ChatGPT가 생성한 최초 버전입니다.
 
 ## 멤버
 
-- [장진석]([https://github.com/labyu](https://github.com/Jinseok2419342))
+- [장진석](https://github.com/Jinseok2419342)
 - 정현국
 - 고지호
 - 최은성
