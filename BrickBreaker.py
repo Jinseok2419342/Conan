@@ -104,7 +104,6 @@ def game_win(total_time, games):
                     return True  # 게임을 재시작
     return False
 
-
 # 게임 오버 상태 처리 함수
 def game_over():
     screen.fill(BLACK)
@@ -139,6 +138,9 @@ def reset_game():
     collision_count = 0
     ball_speed = [6, 6]
 
+# 초기화
+paused = False  # 일시정지 상태 변수 추가
+
 # 메인 게임 루프
 first_game = True  # 처음 실행 여부 확인 변수
 while True:
@@ -163,7 +165,20 @@ while True:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:  # ESC 키로 일시정지 토글
+                    paused = not paused
 
+        # 일시정지 상태 처리
+        if paused:
+            screen.fill(BLACK)
+            draw_centered_text("PAUSED", -50, size=72)
+            draw_centered_text("Press ESC to Resume", 10)
+            pygame.display.flip()
+            pygame.time.Clock().tick(10)
+            continue
+
+        # 키 입력 처리
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] and paddle.left > 0:
             paddle.move_ip(-15, 0)
@@ -179,7 +194,7 @@ while True:
 
         if ball.colliderect(paddle):
             ball.top = paddle.top - ball.height
-            ball_speed[1] = -abs(ball_speed[1])
+            ball_speed[1] = -abs(ball_speed[1])  # Y축 속도 반전만 하고, X축 속도는 그대로 유지
             diff = ball.centerx - paddle.centerx
             ball_speed[0] += diff // 10
 
@@ -228,7 +243,7 @@ while True:
         screen.blit(score_text, (10, 10))
         game_count_text = font.render(f"Games: {game_count}", True, WHITE)
         screen.blit(game_count_text, (width - 150, 10))
-        
+
         # 시간 텍스트 수정 (게임 중 "TIME:" 제거)
         time_text = font.render(format_time(current_time), True, WHITE)
         screen.blit(time_text, (width // 2 - 50, 10))
