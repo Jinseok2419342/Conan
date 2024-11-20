@@ -31,6 +31,9 @@ background_image = pygame.image.load("background_image.jpeg").convert_alpha()  #
 background_image = pygame.transform.scale(background_image, (width, height))  # 화면 크기에 맞게 조정
 background_image.set_alpha(100)  # 투명도 설정 (0~255, 128은 50% 투명)
 
+start_screen_image = pygame.image.load("start_screen.jpg").convert()
+start_screen_image = pygame.transform.scale(start_screen_image, (width, height))
+
 # 공과 패들 설정
 initial_ball_speed = [6, 6]  # 공의 초기 속도
 ball_speed = initial_ball_speed.copy()  # 공 속도 복사하여 사용
@@ -145,17 +148,17 @@ def format_time(milliseconds):
     return f"{minutes:02}:{seconds:02}:{hundredths:02}"
 
 # 텍스트를 가운데 정렬하는 함수
-def draw_centered_text(text, y_offset, size=36):
+def draw_centered_text(text, y_offset, size=36, color=WHITE):
     text_font = pygame.font.Font(None, size)
-    text_surface = text_font.render(text, True, WHITE)
+    text_surface = text_font.render(text, True, color)
     text_rect = text_surface.get_rect(center=(width // 2, height // 2 + y_offset))
     screen.blit(text_surface, text_rect)
 
 # 시작 화면 함수
 def show_start_screen():
-    screen.fill(BLACK)
-    draw_centered_text("Brick Breaker", -50, size=72)
-    draw_centered_text("Press Space To Start", 10)
+    screen.blit(start_screen_image, (0, 0))  # 시작 화면에 이미지 추가
+    # draw_centered_text("Brick Breaker", -50, size=72)
+    draw_centered_text("Press Space To Start", 10, color=(153, 255, 255), size=50)
     pygame.display.flip()
 
     waiting_for_start = True
@@ -176,12 +179,16 @@ def game_win(total_time, games):
     paused_start_time = 0
     game_count = 0  # 게임 클리어 시 게임 횟수 초기화
 
-    screen.fill(BLACK)
-    draw_centered_text("GAME CLEAR", -100, size=72)
-    draw_centered_text(f"Score: {score}", -30)
-    draw_centered_text(f"Time: {format_time(total_time)}", 10)
-    draw_centered_text(f"Games: {games}", 50)
-    draw_centered_text("Press Space To Restart", 100)
+    # Game Clear 화면 이미지 로드
+    game_vict_image = pygame.image.load("game_vict.jpg").convert()
+    game_vict_image = pygame.transform.scale(game_vict_image, (width, height))
+
+    screen.blit(game_vict_image, (0, 0))  # Game Clear 이미지 표시
+    draw_centered_text("GAME CLEAR", -100, size=72, color=(0, 51, 102))
+    draw_centered_text(f"Score: {score}", -30, color=(0, 51, 102))
+    draw_centered_text(f"Time: {format_time(total_time)}", 10, color=(0, 51, 102))
+    draw_centered_text(f"Games: {games}", 50, color=(0, 51, 102))
+    draw_centered_text("Press Space To Restart", 100, color=(0, 51, 102))
     pygame.display.flip()
 
     waiting_for_restart = True
@@ -202,9 +209,12 @@ def game_over():
     paused_total_time = 0
     paused_start_time = 0
 
-    screen.fill(BLACK)
-    draw_centered_text("Game Over", -50, size=72)
-    draw_centered_text("Press Space To Restart", 10)
+    # Game Over 화면 이미지 로드
+    game_over_image = pygame.image.load("Game_Over.jpg").convert()
+    game_over_image = pygame.transform.scale(game_over_image, (width, height))
+
+    screen.blit(game_over_image, (0, 0))  # Game Over 이미지 표시
+    # draw_centered_text("Press Space To Restart", 10)
     pygame.display.flip()
 
     waiting_for_restart = True
@@ -268,7 +278,7 @@ while True:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:  # ESC 키로 일시정지 토글
+                if event.key in [pygame.K_ESCAPE, pygame.K_SPACE]:  # ESC 또는 SPACE로 일시정지/해제
                     paused = not paused
                     if paused:
                         paused_start_time = pygame.time.get_ticks()  # 일시정지 시작 시간 기록
@@ -281,16 +291,16 @@ while True:
         if paused:
             screen.fill(BLACK)
             draw_centered_text("PAUSED", -50, size=72)
-            draw_centered_text("Press ESC to Resume", 10)
+            draw_centered_text("Press ESC or SPACE to Resume", 10)
             pygame.display.flip()
             pygame.time.Clock().tick(10)
             continue
 
         # 키 입력 처리
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT] and paddle.left > 0:
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and paddle.left > 0:
             paddle.move_ip(-15, 0)
-        if keys[pygame.K_RIGHT] and paddle.right < width:
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and paddle.right < width:
             paddle.move_ip(15, 0)
 
         # 공 이동 및 처리
