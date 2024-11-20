@@ -172,7 +172,7 @@ def reset_game():
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
     items = []  # 아이템 리스트 초기화
-    ball_list = [(ball, ball_speed.copy())]  # 공 리스트 초기화
+    ball_list = [(ball, initial_ball_speed.copy())]  # 공 리스트 초기화, 속도 초기화
     for row in range(5):
         color = colors[row % len(colors)]
         for col in range(12):
