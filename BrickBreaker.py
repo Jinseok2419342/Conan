@@ -46,6 +46,10 @@ for row in range(5):  # 벽돌 행 개수
         brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
         bricks.append((brick, color))
 
+# 파괴 불가능한 벽돌 리스트
+unbreakable_bricks = []
+
+
 # 점수 초기화
 score = 0
 collision_count = 0  # 충돌 횟수 초기화
@@ -57,6 +61,22 @@ MAX_SPEED = 6  # 공 속도를 일정하게 유지하도록 상한 설정
 # 투명 블록 설정
 score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
 score_bar = pygame.Rect(0, 0, width, score_bar_height)
+
+# 충돌 체크 함수
+def check_collision_with_bricks_and_items(new_rect, bricks, items, unbreakable_bricks):
+    # 벽돌들 및 아이템들과 겹치는지 확인
+    for brick, _ in bricks:
+        if new_rect.colliderect(brick):
+            return True  # 겹치면 True 반환
+    for item in items:
+        if new_rect.colliderect(item.rect):
+            return True  # 겹치면 True 반환
+    for unbreakable_brick in unbreakable_bricks:
+        if new_rect.colliderect(unbreakable_brick):
+            return True  # 겹치면 True 반환
+    return False  # 겹치지 않으면 False 반환
+
+
 
 # 아이템 클래스
 class Item:
@@ -75,16 +95,45 @@ class Item:
         # 아이템을 아래로 떨어지게 설정
         self.rect.y += 5
 
+
+# 파괴 불가능한 벽돌 생성 아이템 클래스
+class UnbreakableItem:
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x, y, 20, 20)  # 아이템 크기 (20x20)
+        self.color = (169, 169, 169)  # 회색 (Dark Gray)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)  # 회색으로 표시
+
+    def update(self):
+        # 아이템을 아래로 떨어지게 설정
+        self.rect.y += 5
+
+# 파괴 불가능한 벽돌을 생성하는 함수 수정
+def generate_unbreakable_brick():
+    # 아이템 위치가 벽돌들과 겹치지 않도록 확인하는 함수
+    while True:
+        brick_x = random.randint(0, width - brick_width)
+        brick_y = random.randint(score_bar_height + 10, height // 2)
+        new_unbreakable_brick = pygame.Rect(brick_x, brick_y, brick_width, brick_height)
+        
+        # 새 아이템이 기존의 벽돌들과 겹치는지 확인
+        collision = False
+        for brick, _ in bricks:  # 기존 벽돌들과 겹치는지 확인
+            if new_unbreakable_brick.colliderect(brick):
+                collision = True
+                break
+        if not collision:
+            return new_unbreakable_brick  # 겹치지 않으면 아이템 반환
+        
 # 패들 크기 증가 아이템
 def increase_paddle_size():
     paddle.width += 40  # 패들 크기를 40px 증가
 
 # 공의 갯수 증가 아이템
 def add_extra_ball():
-    # 새로운 공을 패들의 위치에서 시작하게 설정
-    new_ball = pygame.Rect(paddle.centerx - 10, paddle.top - 20, 20, 20)  # 패들 중심에서 위로 20px 떨어진 위치
-    new_ball_speed = initial_ball_speed.copy()  # 초기 공 속도 복사
-    new_ball_speed[0] = -new_ball_speed[0]  # x축 속도를 반대로 설정
+    new_ball = pygame.Rect(width // 2, height // 2, 20, 20)
+    new_ball_speed = initial_ball_speed.copy()  # 새로운 공은 초기 공 속도를 그대로 적용
     return new_ball, new_ball_speed
 
 # 시간 계산 함수
@@ -172,12 +221,14 @@ def game_over():
 
 # 게임이 종료되고 다시 시작될 때마다 초기화
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time
+    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, unbreakable_bricks
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
     items = []  # 아이템 리스트 초기화
     ball_list = [(ball, initial_ball_speed.copy())]  # 공 리스트 초기화, 속도 초기화
+    unbreakable_bricks = []  # 파괴 불가능한 벽돌 초기화
+    
     for row in range(5):
         color = colors[row % len(colors)]
         for col in range(12):
@@ -188,6 +239,7 @@ def reset_game():
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
     paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
+    
 
 # 초기화
 paused = False  # 일시정지 상태 변수 추가
@@ -255,11 +307,21 @@ while True:
                 ball_speed[1] = -abs(ball_speed[1])  # Y축 속도 반전만 하고, X축 속도는 그대로 유지
                 diff = ball.centerx - paddle.centerx
                 ball_speed[0] += diff // 10
-
+            
             # 투명 블록(score_bar)과 충돌 처리
             if ball.colliderect(score_bar):
                 ball.top = score_bar.bottom  # 투명 블록 아래로 이동
                 ball_speed[1] = -ball_speed[1]  # Y축 속도 반전
+                    
+            # 파괴 불가능한 벽돌과 충돌 처리
+            for unbreakable_brick in unbreakable_bricks:
+                if ball.colliderect(unbreakable_brick):
+                    # 공이 벽돌에 맞으면 튕기도록 반사
+                    if ball.centerx < unbreakable_brick.left or ball.centerx > unbreakable_brick.right:
+                        ball_speed[0] = -ball_speed[0]  # X축 반사
+                    else:
+                        ball_speed[1] = -ball_speed[1]  # Y축 반사
+                    break  # 한 번 충돌하면 다른 벽돌은 검사하지 않음
 
             for brick, color in bricks[:]:
                 if ball.colliderect(brick):
@@ -269,10 +331,15 @@ while True:
                     collision_count += 1
 
                     # 일정 확률로 아이템 생성
-                    if random.random() < 0.3:  # 30% 확률로 아이템 생성
-                        item_type = random.choice([1, 2])  # 1: 패들 크기 증가, 2: 공 개수 증가
-                        item = Item(brick.centerx - 10, brick.centery, item_type)
+                    if random.random() < 0.8:  # 30% 확률로 아이템 생성
+                        item_type = random.choice([1, 2, 3])  # 1: 패들 크기 증가, 2: 공 개수 증가, 3: 절대 안 깨지는 벽돌 생성
+                        if item_type == 3:  # 절대 안 깨지는 벽돌 생성 아이템
+                            item = UnbreakableItem(brick.centerx - 10, brick.centery)
+                        else:
+                            item = Item(brick.centerx - 10, brick.centery, item_type)
                         items.append(item)
+
+
 
                     if len(bricks) == 0:  # 벽돌이 모두 제거되었을 때
                         if game_win(current_time, game_count):
@@ -283,17 +350,29 @@ while True:
                             pygame.quit()
                             sys.exit()
 
-        # 아이템 업데이트 및 처리
+       # 아이템 처리 및 생성 부분 수정
         for item in items[:]:
             item.update()
             if item.rect.colliderect(paddle):
-                if item.type == 1:  # 패들 크기 증가
+                if isinstance(item, UnbreakableItem):  # 파괴 불가능한 벽돌 생성
+                    # 새로운 위치를 찾기 위한 루프
+                    while True:
+                        brick_x = random.randint(0, width - brick_width)
+                        brick_y = random.randint(score_bar_height + 10, height // 2)
+                        new_unbreakable_brick = pygame.Rect(brick_x, brick_y, brick_width, brick_height)
+
+                        # 겹치지 않는 위치인지 확인
+                        if not check_collision_with_bricks_and_items(new_unbreakable_brick, bricks, items, unbreakable_bricks):
+                            unbreakable_bricks.append(new_unbreakable_brick)
+                            break  # 겹치지 않으면 아이템 추가 후 종료
+                elif item.type == 1:  # 패들 크기 증가
                     increase_paddle_size()
                 elif item.type == 2:  # 공 개수 증가
                     new_ball, new_ball_speed = add_extra_ball()
                     ball_list.append((new_ball, new_ball_speed))
 
                 items.remove(item)
+
 
         # 공이 바닥에 닿았을 때
         for ball, ball_speed in ball_list[:]:
@@ -315,6 +394,11 @@ while True:
         # 벽돌 그리기
         for brick, color in bricks:
             pygame.draw.rect(screen, color, brick)
+
+        # 파괴 불가능한 벽돌 그리기 (회색)
+        for unbreakable_brick in unbreakable_bricks:
+            pygame.draw.rect(screen, (128, 128, 128), unbreakable_brick)  # RGB 값: 회색
+
 
         # 아이템 그리기
         for item in items:
