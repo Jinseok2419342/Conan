@@ -52,7 +52,6 @@ MAX_SPEED = 6  # 공 속도를 일정하게 유지하도록 상한 설정
 # 투명 블록 설정
 score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
 score_bar = pygame.Rect(0, 0, width, score_bar_height)
-score_bar_bumped = False
 
 # 아이템 클래스
 class Item:
@@ -118,9 +117,10 @@ def show_start_screen():
 
 # 게임 클리어 화면
 def game_win(total_time, games):
-    global paused_total_time, paused_start_time
+    global paused_total_time, paused_start_time, game_count
     paused_total_time = 0
     paused_start_time = 0
+    game_count = 0  # 게임 클리어 시 게임 횟수 초기화
 
     screen.fill(BLACK)
     draw_centered_text("GAME CLEAR", -100, size=72)
@@ -167,7 +167,7 @@ def game_over():
 
 # 게임이 종료되고 다시 시작될 때마다 초기화
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, score_bar_bumped
+    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
@@ -183,7 +183,6 @@ def reset_game():
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
     paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
-    score_bar_bumped = False
 
 # 초기화
 paused = False  # 일시정지 상태 변수 추가
@@ -252,11 +251,10 @@ while True:
                 diff = ball.centerx - paddle.centerx
                 ball_speed[0] += diff // 10
 
+            # 투명 블록(score_bar)과 충돌 처리
             if ball.colliderect(score_bar):
-                if score_bar_bumped == False:
-                    score_bar_bumped = True
-                    ball_speed[1] = -ball_speed[1]
-                score_bar_bumped = False
+                ball.top = score_bar.bottom  # 투명 블록 아래로 이동
+                ball_speed[1] = -ball_speed[1]  # Y축 속도 반전
 
             for brick, color in bricks[:]:
                 if ball.colliderect(brick):
