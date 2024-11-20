@@ -52,6 +52,7 @@ MAX_SPEED = 6  # 공 속도를 일정하게 유지하도록 상한 설정
 # 투명 블록 설정
 score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
 score_bar = pygame.Rect(0, 0, width, score_bar_height)
+score_bar_bumped = False
 
 # 아이템 클래스
 class Item:
@@ -164,7 +165,7 @@ def game_over():
 
 # 게임이 종료되고 다시 시작될 때마다 초기화
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time
+    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, score_bar_bumped
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
@@ -180,6 +181,7 @@ def reset_game():
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
     paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
+    score_bar_bumped = False
 
 # 초기화
 paused = False  # 일시정지 상태 변수 추가
@@ -249,7 +251,10 @@ while True:
                 ball_speed[0] += diff // 10
 
             if ball.colliderect(score_bar):
-                ball_speed[1] = -ball_speed[1]
+                if score_bar_bumped == False:
+                    score_bar_bumped = True
+                    ball_speed[1] = -ball_speed[1]
+                score_bar_bumped = False
 
             for brick, color in bricks[:]:
                 if ball.colliderect(brick):
