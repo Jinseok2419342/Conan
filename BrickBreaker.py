@@ -115,6 +115,10 @@ def show_start_screen():
 
 # 게임 클리어 화면
 def game_win(total_time, games):
+    global paused_total_time, paused_start_time
+    paused_total_time = 0
+    paused_start_time = 0
+
     screen.fill(BLACK)
     draw_centered_text("GAME CLEAR", -100, size=72)
     draw_centered_text(f"Score: {score}", -30)
@@ -137,6 +141,10 @@ def game_win(total_time, games):
 
 # 게임 오버 상태 처리 함수
 def game_over():
+    global paused_total_time, paused_start_time
+    paused_total_time = 0
+    paused_start_time = 0
+
     screen.fill(BLACK)
     draw_centered_text("Game Over", -50, size=72)
     draw_centered_text("Press Space To Restart", 10)
@@ -156,7 +164,7 @@ def game_over():
 
 # 게임이 종료되고 다시 시작될 때마다 초기화
 def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count
+    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time
     ball = pygame.Rect(width // 2, height // 2, 20, 20)
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
@@ -170,6 +178,7 @@ def reset_game():
     score = 0
     collision_count = 0
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
+    paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
 
 # 초기화
@@ -204,8 +213,9 @@ while True:
                     if paused:
                         paused_start_time = pygame.time.get_ticks()  # 일시정지 시작 시간 기록
                     else:
-                        paused_total_time += pygame.time.get_ticks() - paused_start_time  # 일시정지 시간 누적
-
+                        if paused_start_time != 0:  # 일시정지 시작이 기록된 경우만 처리
+                            paused_total_time += pygame.time.get_ticks() - paused_start_time
+                            paused_start_time = 0
 
         # 일시정지 상태 처리
         if paused:
