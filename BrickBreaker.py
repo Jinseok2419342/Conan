@@ -77,8 +77,10 @@ def increase_paddle_size():
 
 # 공의 갯수 증가 아이템
 def add_extra_ball():
-    new_ball = pygame.Rect(width // 2, height // 2, 20, 20)
-    new_ball_speed = initial_ball_speed.copy()  # 새로운 공은 초기 공 속도를 그대로 적용
+    # 새로운 공을 패들의 위치에서 시작하게 설정
+    new_ball = pygame.Rect(paddle.centerx - 10, paddle.top - 20, 20, 20)  # 패들 중심에서 위로 20px 떨어진 위치
+    new_ball_speed = initial_ball_speed.copy()  # 초기 공 속도 복사
+    new_ball_speed[0] = -new_ball_speed[0]  # x축 속도를 반대로 설정
     return new_ball, new_ball_speed
 
 # 시간 계산 함수
