@@ -26,6 +26,11 @@ colors = [
 paused_start_time = 0  # 일시정지 시작 시간을 기록
 paused_total_time = 0  # 일시정지 중 누적된 시간
 
+# 이미지 로드 및 투명도 설정
+background_image = pygame.image.load("background_image.jpeg").convert_alpha()  # 알파 채널 포함하여 로드
+background_image = pygame.transform.scale(background_image, (width, height))  # 화면 크기에 맞게 조정
+background_image.set_alpha(100)  # 투명도 설정 (0~255, 128은 50% 투명)
+
 # 공과 패들 설정
 initial_ball_speed = [6, 6]  # 공의 초기 속도
 ball_speed = initial_ball_speed.copy()  # 공 속도 복사하여 사용
@@ -301,7 +306,10 @@ while True:
                     break
 
         # 화면 그리기
-        screen.fill(BLACK)
+        # 배경 이미지를 투명하게 화면에 그리기
+        screen.fill(BLACK)  # 투명 이미지 아래 기본 배경색 설정
+        screen.blit(background_image, (0, 0))  # 투명도가 적용된 배경 이미지 그리기
+        
         pygame.draw.rect(screen, WHITE, paddle)
 
         # 벽돌 그리기
