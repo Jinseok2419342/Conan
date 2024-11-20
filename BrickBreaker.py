@@ -338,4 +338,4 @@ while True:
         pygame.draw.line(screen, WHITE, (0, 50), (width, 50), 2)  # 선을 추가합니다.
 
         pygame.display.flip()
-        pygame.time.Clock().tick(60)
+        pygame.time.Clock().tick(120)
