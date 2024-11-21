@@ -148,17 +148,22 @@ def format_time(milliseconds):
     return f"{minutes:02}:{seconds:02}:{hundredths:02}"
 
 # 텍스트를 가운데 정렬하는 함수
-def draw_centered_text(text, y_offset, size=36, color=WHITE):
+def draw_centered_text(text, y_offset, size=50, color=(255, 255, 255), bg_color=None, border_radius=20):
     text_font = pygame.font.Font(None, size)
     text_surface = text_font.render(text, True, color)
     text_rect = text_surface.get_rect(center=(width // 2, height // 2 + y_offset))
-    screen.blit(text_surface, text_rect)
+    
+    if bg_color:  # 배경 색상이 지정되었을 경우
+        padding = 20  # 여백 크기를 확대
+        bg_rect = text_rect.inflate(padding * 2, padding * 2)  # 여백만큼 사각형 크기 확장
+        pygame.draw.rect(screen, bg_color, bg_rect, border_radius=border_radius)  # 둥근 모서리 사각형 그리기
+    
+    screen.blit(text_surface, text_rect)  # 텍스트 그리기
 
 # 시작 화면 함수
 def show_start_screen():
     screen.blit(start_screen_image, (0, 0))  # 시작 화면에 이미지 추가
-    # draw_centered_text("Brick Breaker", -50, size=72)
-    draw_centered_text("Press Space To Start", 10, color=(153, 255, 255), size=50)
+    draw_centered_text("Press Space To Start", 50, size=80, color=(252,148,12), bg_color=(109,0,142), border_radius=30) 
     pygame.display.flip()
 
     waiting_for_start = True
