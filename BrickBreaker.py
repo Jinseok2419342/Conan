@@ -346,7 +346,7 @@ while True:
                     collision_count += 1
 
                     # 일정 확률로 아이템 생성
-                    if random.random() < 0.8:  # 30% 확률로 아이템 생성
+                    if random.random() < 0.3:  # 30% 확률로 아이템 생성
                         item_type = random.choice([1, 2, 3])  # 1: 패들 크기 증가, 2: 공 개수 증가, 3: 절대 안 깨지는 벽돌 생성
                         if item_type == 3:  # 절대 안 깨지는 벽돌 생성 아이템
                             item = UnbreakableItem(brick.centerx - 10, brick.centery)
