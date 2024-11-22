@@ -122,6 +122,7 @@
 
 ## 최초 버전
 ChatGPT가 생성한 최초 버전입니다. ( gif 이미지 ) 
+
 ![gpt_first](https://github.com/user-attachments/assets/06657891-16fa-496b-845b-564d36715004)
 
 -----
