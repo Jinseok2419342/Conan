@@ -34,11 +34,23 @@ background_image.set_alpha(100)  # 투명도 설정 (0~255, 128은 50% 투명)
 start_screen_image = pygame.image.load("start_screen.jpg").convert()
 start_screen_image = pygame.transform.scale(start_screen_image, (width, height))
 
+
 # 공과 패들 설정
 initial_ball_speed = [6, 6]  # 공의 초기 속도
 ball_speed = initial_ball_speed.copy()  # 공 속도 복사하여 사용
 ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공 크기
 paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
+
+def initialize_ball():
+    global ball_speed
+    ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공의 위치는 화면 중앙
+    # x축 방향에 랜덤성을 부여
+    x_direction = random.choice([-1 ,1])  # x축 방향을 왼쪽(-) 또는 오른쪽(+)으로 설정
+    ball_speed = [6 * x_direction, 6]  # x축은 랜덤, y축 속도는 고정된 값
+    return ball
+
+
+
 
 # 벽돌 설정
 brick_width, brick_height = 79, 30  # 벽돌 크기 조정
@@ -237,16 +249,16 @@ def game_over():
                     return True
     return False
 
-# 게임이 종료되고 다시 시작될 때마다 초기화
+# 게임이 종료되고 다시 시작될 때마다 초기화    
 def reset_game():
     global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, unbreakable_bricks
-    ball = pygame.Rect(width // 2, height // 2, 20, 20)
+    ball = initialize_ball()  # 공 초기화
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
     bricks = []
     items = []  # 아이템 리스트 초기화
-    ball_list = [(ball, initial_ball_speed.copy())]  # 공 리스트 초기화, 속도 초기화
+    ball_list = [(ball, ball_speed.copy())]  # 공 리스트 초기화
     unbreakable_bricks = []  # 파괴 불가능한 벽돌 초기화
-    
+       
     for row in range(5):
         color = colors[row % len(colors)]
         for col in range(12):
@@ -257,8 +269,6 @@ def reset_game():
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
     paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
-    
-
 # 초기화
 paused = False  # 일시정지 상태 변수 추가
 game_count = 0  # 게임 횟수 초기화
