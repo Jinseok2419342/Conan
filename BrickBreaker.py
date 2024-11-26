@@ -325,10 +325,12 @@ while True:
         for ball, ball_speed in ball_list[:]:
             ball.move_ip(ball_speed)
 
-            if ball.left <= 0 or ball.right >= width:
-                ball_speed[0] = -ball_speed[0]
-            if ball.top <= 0:
-                ball_speed[1] = -ball_speed[1]
+            if ball.left <= 0:  # 왼쪽 벽에 닿았을 때
+                ball.left = 0  # 공의 위치를 왼쪽 벽 바로 옆으로 이동
+                ball_speed[0] = -ball_speed[0]  # X축 속도 반전
+            elif ball.right >= width:  # 오른쪽 벽에 닿았을 때
+                ball.right = width  # 공의 위치를 오른쪽 벽 바로 옆으로 이동
+                ball_speed[0] = -ball_speed[0]  # X축 속도 반전
 
             if ball.colliderect(paddle):
                 ball.top = paddle.top - ball.height
@@ -344,20 +346,22 @@ while True:
             # 공이 파괴 불가능 벽돌과 충돌 처리
             for unbreakable_brick in unbreakable_bricks:
                 if ball.colliderect(unbreakable_brick):
-                    # 충돌 위치에 따라 공을 반사
-                    if ball.bottom >= unbreakable_brick.top and ball_speed[1] > 0:
-                        ball.bottom = unbreakable_brick.top
-                        ball_speed[1] = -ball_speed[1]  # 아래쪽에서 충돌, Y축 반사
-                    elif ball.top <= unbreakable_brick.bottom and ball_speed[1] < 0:
-                        ball.top = unbreakable_brick.bottom
-                        ball_speed[1] = -ball_speed[1]  # 위쪽에서 충돌, Y축 반사
-                    elif ball.right >= unbreakable_brick.left and ball_speed[0] > 0:
-                        ball.right = unbreakable_brick.left
-                        ball_speed[0] = -ball_speed[0]  # 오른쪽에서 충돌, X축 반사
-                    elif ball.left <= unbreakable_brick.right and ball_speed[0] < 0:
-                        ball.left = unbreakable_brick.right
-                        ball_speed[0] = -ball_speed[0]  # 왼쪽에서 충돌, X축 반사
-                    break  # 한 번 충돌 후 다른 벽돌은 검사하지 않음
+                    # 속도에 따른 충돌 방향 판별
+                    if abs(ball_speed[0]) > abs(ball_speed[1]):  # X축 속도가 더 강한 경우
+                        if ball_speed[0] > 0:  # 오른쪽에서 충돌
+                            ball.right = unbreakable_brick.left
+                            ball_speed[0] = -abs(ball_speed[0])  # X축 반사
+                        else:  # 왼쪽에서 충돌
+                            ball.left = unbreakable_brick.right
+                            ball_speed[0] = abs(ball_speed[0])  # X축 반사
+                    else:  # Y축 속도가 더 강한 경우
+                        if ball_speed[1] > 0:  # 아래쪽에서 충돌
+                            ball.bottom = unbreakable_brick.top
+                            ball_speed[1] = -abs(ball_speed[1])  # Y축 반사
+                        else:  # 위쪽에서 충돌
+                            ball.top = unbreakable_brick.bottom
+                            ball_speed[1] = abs(ball_speed[1])  # Y축 반사
+                    break  # 충돌 후 다른 벽돌은 검사하지 않음
 
             for brick, color in bricks[:]:
                 if ball.colliderect(brick):
