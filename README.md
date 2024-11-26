@@ -114,6 +114,7 @@
 
 ## 최초 버전
 ChatGPT가 생성한 최초 버전입니다. ( gif 이미지 ) 
+
 ![gpt_first](https://github.com/user-attachments/assets/06657891-16fa-496b-845b-564d36715004)
 
 -----
@@ -134,6 +135,6 @@ ChatGPT가 생성한 최초 버전입니다. ( gif 이미지 )
 - [정현국](https://github.com/ehfl21)
 - [고지호](https://github.com/jiho050718)
 - [최은성](https://github.com/eunsg1)
-- [김건우](https://github.com/uro12)
+- [김건우](https://github.com/urobo12)
 - [김수한](https://github.com/suhan1029)
 - [양경윤](https://github.com/kyungyunie)
