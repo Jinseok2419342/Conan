@@ -341,15 +341,25 @@ while True:
                 ball.top = score_bar.bottom  # 투명 블록 아래로 이동
                 ball_speed[1] = -ball_speed[1]  # Y축 속도 반전
                     
-            # 파괴 불가능한 벽돌과 충돌 처리
+            # 공이 파괴 불가능 벽돌과 충돌 처리
             for unbreakable_brick in unbreakable_bricks:
                 if ball.colliderect(unbreakable_brick):
-                    # 공이 벽돌에 맞으면 튕기도록 반사
-                    if ball.centerx < unbreakable_brick.left or ball.centerx > unbreakable_brick.right:
-                        ball_speed[0] = -ball_speed[0]  # X축 반사
-                    else:
-                        ball_speed[1] = -ball_speed[1]  # Y축 반사
-                    break  # 한 번 충돌하면 다른 벽돌은 검사하지 않음
+                    # 속도에 따른 충돌 방향 판별
+                    if abs(ball_speed[0]) > abs(ball_speed[1]):  # X축 속도가 더 강한 경우
+                        if ball_speed[0] > 0:  # 오른쪽에서 충돌
+                            ball.right = unbreakable_brick.left
+                            ball_speed[0] = -abs(ball_speed[0])  # X축 반사
+                        else:  # 왼쪽에서 충돌
+                            ball.left = unbreakable_brick.right
+                            ball_speed[0] = abs(ball_speed[0])  # X축 반사
+                    else:  # Y축 속도가 더 강한 경우
+                        if ball_speed[1] > 0:  # 아래쪽에서 충돌
+                            ball.bottom = unbreakable_brick.top
+                            ball_speed[1] = -abs(ball_speed[1])  # Y축 반사
+                        else:  # 위쪽에서 충돌
+                            ball.top = unbreakable_brick.bottom
+                            ball_speed[1] = abs(ball_speed[1])  # Y축 반사
+                    break  # 충돌 후 다른 벽돌은 검사하지 않음
 
             for brick, color in bricks[:]:
                 if ball.colliderect(brick):
