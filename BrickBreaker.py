@@ -162,6 +162,19 @@ def format_time(milliseconds):
     hundredths = (milliseconds % 1000) // 10
     return f"{minutes:02}:{seconds:02}:{hundredths:02}"
 
+# 게임 클리어 텍스트를 가운데 정렬하는 함수
+def draw_centered_over_text(text, y_offset, size=50, color=None, bg_color=None, border_radius=20):
+    text_font = pygame.font.Font(None, size)
+    text_surface = text_font.render(text, True, color)
+    text_rect = text_surface.get_rect(center=(width // 2, height // 2 + y_offset))
+    
+    if bg_color:  # 배경 색상이 지정되었을 경우
+        padding = 20  # 여백 크기를 확대
+        bg_rect = text_rect.inflate(padding * 1.5, padding * 1.5)  # 여백만큼 사각형 크기 확장
+        pygame.draw.rect(screen, bg_color, bg_rect, border_radius=border_radius)  # 둥근 모서리 사각형 그리기
+        
+    screen.blit(text_surface, text_rect)  # 텍스트 그리기
+    
 # 텍스트를 가운데 정렬하는 함수
 def draw_centered_text(text, y_offset, size=50, color=(255, 255, 255), bg_color=None, border_radius=20):
     text_font = pygame.font.Font(None, size)
@@ -198,30 +211,6 @@ def game_win(total_time, games):
     paused_total_time = 0
     paused_start_time = 0
     game_count = 0  # 게임 클리어 시 게임 횟수 초기화
-
-    # Game Clear 화면 이미지 로드
-    game_vict_image = pygame.image.load("game_vict.jpg").convert()
-    game_vict_image = pygame.transform.scale(game_vict_image, (width, height))
-
-    screen.blit(game_vict_image, (0, 0))  # Game Clear 이미지 표시
-    draw_centered_text("GAME CLEAR", -100, size=72, color=(0, 51, 102))
-    draw_centered_text(f"Score: {score}", -30, color=(0, 51, 102))
-    draw_centered_text(f"Time: {format_time(total_time)}", 10, color=(0, 51, 102))
-    draw_centered_text(f"Games: {games}", 50, color=(0, 51, 102))
-    draw_centered_text("Press Space To Restart", 100, color=(0, 51, 102))
-    pygame.display.flip()
-
-    waiting_for_restart = True
-    while waiting_for_restart:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    waiting_for_restart = False
-                    return True  # 게임을 재시작
-    return False
 
 # 게임 오버 상태 처리 함수
 def game_over():
@@ -437,6 +426,64 @@ while True:
         for unbreakable_brick in unbreakable_bricks:
             pygame.draw.rect(screen, (128, 128, 128), unbreakable_brick)  # RGB 값: 회색
 
+
+
+        # 등급 계산 함수
+        def calculate_grade(total_time, bricks_removed, total_bricks):
+            # 시간은 초 단위로 변환
+            time_in_seconds = total_time // 1000
+
+            # 벽돌 제거 비율 계산
+            removal_ratio = bricks_removed / total_bricks
+
+            # 등급 조건
+            if time_in_seconds <= 300 and removal_ratio >= 1.0:  # 5분 이내, 모든 벽돌 제거
+                return "S"
+            elif time_in_seconds <= 420 and removal_ratio >= 0.9:  # 7분 이내, 90% 이상 제거
+                return "A"
+            elif time_in_seconds <= 600 and removal_ratio >= 0.5:  # 10분 이내, 절반 이상 제거
+                return "B"
+            else:  # 그 외
+                return "C"
+
+        # 게임 클리어 화면
+        def game_win(total_time, games):
+            global paused_total_time, paused_start_time, game_count
+
+            paused_total_time = 0
+            paused_start_time = 0
+            game_count = 0  # 게임 클리어 시 게임 횟수 초기화
+
+            # 총 벽돌 수와 제거된 벽돌 수
+            total_bricks = len(colors) * 12
+            bricks_removed = total_bricks - len(bricks)
+
+            # 등급 계산
+            grade = calculate_grade(total_time, bricks_removed, total_bricks)
+            # y_offset=-250: 텍스트 간 간격
+            # Game Clear 화면 이미지 로드
+            game_vict_image = pygame.image.load("game_vict.jpg").convert()
+            game_vict_image = pygame.transform.scale(game_vict_image, (width, height))
+            screen.blit(game_vict_image, (0, 0))  # Game Clear 이미지 표시
+            draw_centered_over_text(f"GAME CLEAR", y_offset=-150, size=62, color=(255, 215, 0), bg_color=(0, 0, 0), border_radius=30)
+            draw_centered_over_text(f"Score: {score}", y_offset=-80, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)
+            draw_centered_over_text(f"Time: {format_time(total_time)}", y_offset=-10, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)
+            draw_centered_over_text(f"Grade: {grade}", y_offset=60, size=62, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)  # 등급 표시
+            draw_centered_over_text("Press Space To Restart", y_offset=130, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)  # 박스 간 간격
+
+            pygame.display.flip()
+
+            waiting_for_restart = True
+            while waiting_for_restart:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            waiting_for_restart = False
+                            return True  # 게임을 재시작
+            return False
 
         # 아이템 그리기
         for item in items:
