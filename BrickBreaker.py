@@ -20,7 +20,9 @@ colors = [
     (127, 255, 0),   # 2번줄: 차트리우스
     (0, 191, 255),   # 3번줄: 딥 스카이 블루
     (255, 215, 0),   # 4번줄: 골드
-    (138, 43, 226)   # 5번줄: 블루바이올렛
+    (138, 43, 226),  # 5번줄: 블루바이올렛
+    (255, 105, 180), # 6번줄: 핫핑크
+    (0, 255, 127)    # 7번줄: 스프링 그린
 ]
 
 paused_start_time = 0  # 일시정지 시작 시간을 기록
@@ -34,54 +36,191 @@ background_image.set_alpha(100)  # 투명도 설정 (0~255, 128은 50% 투명)
 start_screen_image = pygame.image.load("start_screen.jpg").convert()
 start_screen_image = pygame.transform.scale(start_screen_image, (width, height))
 
+# 추가된 이미지 로드
+paused_image = pygame.image.load("paused.jpg").convert()
+paused_image = pygame.transform.scale(paused_image, (width, height))
+
+stage_cleared_image = pygame.image.load("stage_cleared.jpg").convert()
+stage_cleared_image = pygame.transform.scale(stage_cleared_image, (width, height))
+
 
 # 공과 패들 설정
-initial_ball_speed = [6, 6]  # 공의 초기 속도
+initial_ball_speed = [6, -6]  # 공의 초기 속도를 조금 빠르게 설정
 ball_speed = initial_ball_speed.copy()  # 공 속도 복사하여 사용
 ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공 크기
 paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
+default_paddle_speed = 15  # 패들 기본 속도
 
 def initialize_ball():
     global ball_speed
     ball = pygame.Rect(width // 2, height // 2, 20, 20)  # 공의 위치는 화면 중앙
     # x축 방향에 랜덤성을 부여
     x_direction = random.choice([-1 ,1])  # x축 방향을 왼쪽(-) 또는 오른쪽(+)으로 설정
-    ball_speed = [6 * x_direction, 6]  # x축은 랜덤, y축 속도는 고정된 값
+    ball_speed = [initial_ball_speed[0] * x_direction, initial_ball_speed[1]]  # x축은 랜덤, y축 속도는 고정된 값
     return ball
 
 
-
+# 벽돌 클래스 정의
+class Brick:
+    def __init__(self, rect, color, hits_required=1):
+        self.rect = rect
+        self.color = color  # 벽돌의 색상을 저장
+        self.hits_required = hits_required
+        self.hits_remaining = hits_required
 
 # 벽돌 설정
 brick_width, brick_height = 79, 30  # 벽돌 크기 조정
 bricks = []
-for row in range(5):  # 벽돌 행 개수
-    color = colors[row % len(colors)]
-    for col in range(12):  # 열 개수
-        brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
-        bricks.append((brick, color))
 
 # 파괴 불가능한 벽돌 리스트
 unbreakable_bricks = []
-
 
 # 점수 초기화
 score = 0
 collision_count = 0  # 충돌 횟수 초기화
 font = pygame.font.Font(None, 36)
 
-# 공 속도 상한 설정
-MAX_SPEED = 6  # 공 속도를 일정하게 유지하도록 상한 설정
+# 게임 단계 설정
+current_stage = 1
+
+n = 5  # base_ball_speed
+
+# 각 스테이지별 설정
+stages = [
+    {
+        'stage_number': 1,
+        'max_ball_speed': n,
+        'item_probability': 0.5,
+        'multi_hit_bricks': [],
+        'paddle_speed_multiplier': 1.0,
+        'ball_speed_multiplier': 1.0,
+        'brick_rows': 5,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number': 2,
+        'max_ball_speed': n,
+        'item_probability': 0.45,
+        'multi_hit_bricks': [(12, 2)],
+        'paddle_speed_multiplier': 1.0,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':5,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number':3,
+        'max_ball_speed':n,
+        'item_probability':0.4,
+        'multi_hit_bricks':[(16,2)],
+        'paddle_speed_multiplier':1.0,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':5,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number':4,
+        'max_ball_speed': n * 1.15,  # Increase max speed by 15%
+        'item_probability':0.37,
+        'multi_hit_bricks':[(20,2)],
+        'paddle_speed_multiplier':1.0,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':5,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number':5,
+        'max_ball_speed': n * 1.15,
+        'item_probability':0.37,  # Assuming same as previous
+        'multi_hit_bricks':[(10,3),(10,2)],
+        'paddle_speed_multiplier':1.0,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':5,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number':6,
+        'max_ball_speed': (n * 1.15) * 1.10,  # Increase by 10% over stage 4
+        'item_probability':0.34,
+        'multi_hit_bricks':[(20,3)],
+        'paddle_speed_multiplier':1.10,  # 10% faster than previous stages
+        'ball_speed_multiplier':1.0,
+        'brick_rows':6,
+        'new_brick_interval': None,
+        'new_brick_type': None,
+        'new_brick_count': None,
+    },
+    {
+        'stage_number':7,
+        'max_ball_speed': (n * 1.15) * 1.10,
+        'item_probability':0.34,
+        'multi_hit_bricks':[(20,3)],
+        'paddle_speed_multiplier':1.10,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':6,
+        'new_brick_interval':15,
+        'new_brick_type':1,
+        'new_brick_count':1,
+    },
+    {
+        'stage_number':8,
+        'max_ball_speed': ((n * 1.15) * 1.10) * 1.05,  # Increase by 5% over stage 6
+        'item_probability':0.30,
+        'multi_hit_bricks':[(23,3)],
+        'paddle_speed_multiplier':1.10 * 1.06,  # 6% increase over stage 6
+        'ball_speed_multiplier':1.0,
+        'brick_rows':6,
+        'new_brick_interval':13,
+        'new_brick_type':1,
+        'new_brick_count':1,
+    },
+    {
+        'stage_number':9,
+        'max_ball_speed': ((n * 1.15) * 1.10) * 1.05,
+        'item_probability':0.25,
+        'multi_hit_bricks':[(20,3)],
+        'paddle_speed_multiplier':1.10 * 1.06,
+        'ball_speed_multiplier':1.0,
+        'brick_rows':6,
+        'new_brick_interval':21,
+        'new_brick_type':2,
+        'new_brick_count':1,
+    },
+    {
+        'stage_number':10,
+        'max_ball_speed': (((n * 1.15) * 1.10) * 1.05) * 1.03,  # 3% increase over stage 8
+        'item_probability':0.15,
+        'multi_hit_bricks':[(25,3)],
+        'paddle_speed_multiplier':1.10 * 1.06 * 1.03,  # 3% increase over stage 8
+        'ball_speed_multiplier':1.0,
+        'brick_rows':7,
+        'new_brick_interval':35,
+        'new_brick_type':2,
+        'new_brick_count':2,
+    }
+]
 
 # 투명 블록 설정
 score_bar_height = 60  # 점수 영역 + 흰 줄 아래 추가 높이
 score_bar = pygame.Rect(0, 0, width, score_bar_height)
 
+# 아이템 등장 확률
+item_probability = 0.5  # 초기값 (스테이지 1)
+
 # 충돌 체크 함수
 def check_collision_with_bricks_and_items(new_rect, bricks, items, unbreakable_bricks):
     # 벽돌들 및 아이템들과 겹치는지 확인
-    for brick, _ in bricks:
-        if new_rect.colliderect(brick):
+    for brick in bricks:
+        if new_rect.colliderect(brick.rect):
             return True  # 겹치면 True 반환
     for item in items:
         if new_rect.colliderect(item.rect):
@@ -124,23 +263,6 @@ class UnbreakableItem:
         # 아이템을 아래로 떨어지게 설정
         self.rect.y += 5
 
-# 파괴 불가능한 벽돌을 생성하는 함수 수정
-def generate_unbreakable_brick():
-    # 아이템 위치가 벽돌들과 겹치지 않도록 확인하는 함수
-    while True:
-        brick_x = random.randint(0, width - brick_width)
-        brick_y = random.randint(score_bar_height + 10, height // 2)
-        new_unbreakable_brick = pygame.Rect(brick_x, brick_y, brick_width, brick_height)
-        
-        # 새 아이템이 기존의 벽돌들과 겹치는지 확인
-        collision = False
-        for brick, _ in bricks:  # 기존 벽돌들과 겹치는지 확인
-            if new_unbreakable_brick.colliderect(brick):
-                collision = True
-                break
-        if not collision:
-            return new_unbreakable_brick  # 겹치지 않으면 아이템 반환
-        
 # 패들 크기 증가 아이템
 def increase_paddle_size():
     paddle.width += 40  # 패들 크기를 40px 증가
@@ -205,15 +327,8 @@ def show_start_screen():
                     waiting_for_start = False
                     return
 
-# 게임 클리어 화면
-def game_win(total_time, games):
-    global paused_total_time, paused_start_time, game_count
-    paused_total_time = 0
-    paused_start_time = 0
-    game_count = 0  # 게임 클리어 시 게임 횟수 초기화
-
 # 게임 오버 상태 처리 함수
-def game_over():
+def game_over_screen():
     global paused_total_time, paused_start_time
     paused_total_time = 0
     paused_start_time = 0
@@ -238,26 +353,61 @@ def game_over():
                     return True
     return False
 
+# 스테이지 클리어 화면 함수
+def stage_cleared_screen(current_stage):
+    # 스테이지 클리어 이미지를 표시
+    screen.blit(stage_cleared_image, (0, 0))
+    pygame.display.flip()
+
+    waiting_for_next_stage = True
+    while waiting_for_next_stage:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting_for_next_stage = False
+
 # 게임이 종료되고 다시 시작될 때마다 초기화    
-def reset_game():
-    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, unbreakable_bricks
+def reset_game(stage_config):
+    global ball, paddle, bricks, score, ball_speed, collision_count, items, ball_list, game_count, paused_total_time, unbreakable_bricks, MAX_SPEED, item_probability, paddle_speed, last_new_brick_time, current_stage
     ball = initialize_ball()  # 공 초기화
     paddle = pygame.Rect(width // 2 - 50, height - 40, 160, 15)
-    bricks = []
     items = []  # 아이템 리스트 초기화
     ball_list = [(ball, ball_speed.copy())]  # 공 리스트 초기화
     unbreakable_bricks = []  # 파괴 불가능한 벽돌 초기화
-       
-    for row in range(5):
+    bricks = []  # 벽돌 리스트 초기화
+
+    MAX_SPEED = stage_config['max_ball_speed']
+    item_probability = stage_config['item_probability']
+    paddle_speed = default_paddle_speed * stage_config['paddle_speed_multiplier']
+    brick_rows = stage_config['brick_rows']
+
+    # 벽돌 생성
+    for row in range(brick_rows):
         color = colors[row % len(colors)]
         for col in range(12):
-            brick = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
-            bricks.append((brick, color))
+            rect = pygame.Rect(10 + col * (brick_width + 5), 60 + row * (brick_height + 5), brick_width, brick_height)
+            brick = Brick(rect, color)
+            bricks.append(brick)
+
+    # 다중 히트 벽돌 설정
+    for num_bricks, hits_required in stage_config['multi_hit_bricks']:
+        selected_bricks = random.sample(bricks, num_bricks)
+        for brick in selected_bricks:
+            brick.hits_required = hits_required
+            brick.hits_remaining = hits_required
+
     score = 0
     collision_count = 0
     ball_speed = initial_ball_speed.copy()  # 공 속도 초기화
     paused_total_time = 0  # 누적 일시정지 시간 초기화
     game_count += 1  # 게임 횟수 증가
+
+    # 새로운 벽돌 등장 관련 시간 초기화
+    last_new_brick_time = pygame.time.get_ticks()
+
 # 초기화
 paused = False  # 일시정지 상태 변수 추가
 game_count = 0  # 게임 횟수 초기화
@@ -269,16 +419,51 @@ while True:
         show_start_screen()
         first_game = False
     else:
-        if not game_over():
+        if not game_over_screen():
             pygame.quit()
             sys.exit()
 
-    reset_game()
+    if current_stage > 10:
+        # 전체 게임 클리어 시 처리
+        # full_clear.jpg 이미지를 표시하고 스페이스바 누르면 다시 1스테이지로
+        full_clear_image = pygame.image.load("full_clear.jpg").convert()
+        full_clear_image = pygame.transform.scale(full_clear_image, (width, height))
+        screen.blit(full_clear_image, (0, 0))
+        pygame.display.flip()
+
+        waiting_for_restart = True
+        while waiting_for_restart:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        current_stage = 1  # 1스테이지로 리셋
+                        waiting_for_restart = False
+
+    reset_game(stages[current_stage - 1])
     play_time_start = pygame.time.get_ticks()  # 시간 초기화
 
     # 게임 루프
     while True:
         current_time = pygame.time.get_ticks() - play_time_start - paused_total_time
+
+        # 새로운 벽돌 등장 처리
+        stage_config = stages[current_stage - 1]
+        if stage_config['new_brick_interval']:
+            if current_time - last_new_brick_time >= stage_config['new_brick_interval'] * 1000:
+                last_new_brick_time = current_time
+                for _ in range(stage_config.get('new_brick_count', 1)):
+                    # 새로운 벽돌 생성
+                    while True:
+                        brick_x = random.randint(0, width - brick_width)
+                        brick_y = random.randint(score_bar_height + 10, height // 2)
+                        rect = pygame.Rect(brick_x, brick_y, brick_width, brick_height)
+                        if not check_collision_with_bricks_and_items(rect, bricks, items, unbreakable_bricks):
+                            new_brick = Brick(rect, color=random.choice(colors), hits_required=stage_config['new_brick_type'])
+                            bricks.append(new_brick)
+                            break  # 겹치지 않으면 생성 완료
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -296,9 +481,7 @@ while True:
 
         # 일시정지 상태 처리
         if paused:
-            screen.fill(BLACK)
-            draw_centered_text("PAUSED", -50, size=72)
-            draw_centered_text("Press ESC or SPACE to Resume", 10)
+            screen.blit(paused_image, (0, 0))  # 일시정지 이미지 표시
             pygame.display.flip()
             pygame.time.Clock().tick(10)
             continue
@@ -306,13 +489,20 @@ while True:
         # 키 입력 처리
         keys = pygame.key.get_pressed()
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and paddle.left > 0:
-            paddle.move_ip(-15, 0)
+            paddle.move_ip(-paddle_speed, 0)
         if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and paddle.right < width:
-            paddle.move_ip(15, 0)
+            paddle.move_ip(paddle_speed, 0)
 
         # 공 이동 및 처리
         for ball, ball_speed in ball_list[:]:
             ball.move_ip(ball_speed)
+
+            # 공의 속도 제한
+            speed = (ball_speed[0] ** 2 + ball_speed[1] ** 2) ** 0.5
+            if speed > MAX_SPEED:
+                scaling_factor = MAX_SPEED / speed
+                ball_speed[0] *= scaling_factor
+                ball_speed[1] *= scaling_factor
 
             if ball.left <= 0 or ball.right >= width:
                 ball_speed[0] = -ball_speed[0]
@@ -321,15 +511,19 @@ while True:
 
             if ball.colliderect(paddle):
                 ball.top = paddle.top - ball.height
-                ball_speed[1] = -abs(ball_speed[1])  # Y축 속도 반전만 하고, X축 속도는 그대로 유지
+                # 최소 수직 속도를 보장하도록 수정
+                min_vertical_speed = 4  # 최소 수직 속도 설정
+                ball_speed[1] = -abs(ball_speed[1])
+                if abs(ball_speed[1]) < min_vertical_speed:
+                    ball_speed[1] = -min_vertical_speed
                 diff = ball.centerx - paddle.centerx
-                ball_speed[0] += diff // 10
-            
+                ball_speed[0] += diff / (paddle.width / 2) * 5  # 패들 너비에 비례하여 조정
+
             # 투명 블록(score_bar)과 충돌 처리
             if ball.colliderect(score_bar):
                 ball.top = score_bar.bottom  # 투명 블록 아래로 이동
-                ball_speed[1] = -ball_speed[1]  # Y축 속도 반전
-                    
+                ball_speed[1] = abs(ball_speed[1])  # Y축 속도를 양수로 설정
+
             # 공이 파괴 불가능 벽돌과 충돌 처리
             for unbreakable_brick in unbreakable_bricks:
                 if ball.colliderect(unbreakable_brick):
@@ -350,34 +544,54 @@ while True:
                             ball_speed[1] = abs(ball_speed[1])  # Y축 반사
                     break  # 충돌 후 다른 벽돌은 검사하지 않음
 
-            for brick, color in bricks[:]:
-                if ball.colliderect(brick):
+            for brick in bricks[:]:
+                if ball.colliderect(brick.rect):
                     ball_speed[1] = -ball_speed[1]
-                    bricks.remove((brick, color))
-                    score += 10
-                    collision_count += 1
-
-                    # 일정 확률로 아이템 생성
-                    if random.random() < 0.3:  # 30% 확률로 아이템 생성
-                        item_type = random.choice([1, 2, 3])  # 1: 패들 크기 증가, 2: 공 개수 증가, 3: 절대 안 깨지는 벽돌 생성
-                        if item_type == 3:  # 절대 안 깨지는 벽돌 생성 아이템
-                            item = UnbreakableItem(brick.centerx - 10, brick.centery)
-                        else:
-                            item = Item(brick.centerx - 10, brick.centery, item_type)
-                        items.append(item)
-
-
+                    brick.hits_remaining -= 1
+                    if brick.hits_remaining <= 0:
+                        bricks.remove(brick)
+                        score += 10
+                        collision_count += 1
+                        # 아이템 등장 확률에 따라 아이템 생성
+                        if random.random() < item_probability:
+                            item_type = random.choice([1, 2, 3])  # 1: 패들 크기 증가, 2: 공 개수 증가, 3: 절대 안 깨지는 벽돌 생성
+                            if item_type == 3:  # 절대 안 깨지는 벽돌 생성 아이템
+                                item = UnbreakableItem(brick.rect.centerx - 10, brick.rect.centery)
+                            else:
+                                item = Item(brick.rect.centerx - 10, brick.rect.centery, item_type)
+                            items.append(item)
+                    else:
+                        pass  # 히트 수에 따른 처리는 그리기 부분에서 처리
 
                     if len(bricks) == 0:  # 벽돌이 모두 제거되었을 때
-                        if game_win(current_time, game_count):
-                            reset_game()
-                            play_time_start = pygame.time.get_ticks()
+                        if current_stage == 10:
+                            # 전체 게임 클리어 처리
+                            # 'full_clear.jpg'를 화면에 띄우고 스페이스바 누르면 1스테이지로
+                            full_clear_image = pygame.image.load("full_clear.jpg").convert()
+                            full_clear_image = pygame.transform.scale(full_clear_image, (width, height))
+                            screen.blit(full_clear_image, (0, 0))
+                            pygame.display.flip()
+
+                            waiting_for_restart = True
+                            while waiting_for_restart:
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                    if event.type == pygame.KEYDOWN:
+                                        if event.key == pygame.K_SPACE:
+                                            current_stage = 1  # 1스테이지로 리셋
+                                            waiting_for_restart = False
                             break
                         else:
-                            pygame.quit()
-                            sys.exit()
+                            # 스테이지 클리어 화면 표시
+                            stage_cleared_screen(current_stage)
+                            current_stage += 1
+                            reset_game(stages[current_stage - 1])
+                            play_time_start = pygame.time.get_ticks()
+                            break
 
-       # 아이템 처리 및 생성 부분 수정
+        # 아이템 처리 및 생성 부분 수정
         for item in items[:]:
             item.update()
             if item.rect.colliderect(paddle):
@@ -406,8 +620,8 @@ while True:
             if ball.bottom >= height:
                 ball_list.remove((ball, ball_speed))
                 if len(ball_list) == 0:
-                    if game_over():
-                        reset_game()
+                    if game_over_screen():
+                        reset_game(stages[current_stage - 1])
                         play_time_start = pygame.time.get_ticks()
                     break
 
@@ -419,71 +633,18 @@ while True:
         pygame.draw.rect(screen, WHITE, paddle)
 
         # 벽돌 그리기
-        for brick, color in bricks:
-            pygame.draw.rect(screen, color, brick)
+        for brick in bricks:
+            color = brick.color  # 벽돌의 색상 사용
+            pygame.draw.rect(screen, color, brick.rect)
+            if brick.hits_remaining == 3:
+                pygame.draw.rect(screen, (0, 0, 0), brick.rect, 3)  # 검은색 테두리
+            elif brick.hits_remaining == 2:
+                pygame.draw.rect(screen, (128, 128, 128), brick.rect, 3)  # 회색 테두리
+            # 히트 수가 1일 때는 테두리 없음
 
         # 파괴 불가능한 벽돌 그리기 (회색)
         for unbreakable_brick in unbreakable_bricks:
             pygame.draw.rect(screen, (128, 128, 128), unbreakable_brick)  # RGB 값: 회색
-
-
-
-        # 등급 계산 함수
-        def calculate_grade(total_time, bricks_removed, total_bricks):
-            # 시간은 초 단위로 변환
-            time_in_seconds = total_time // 1000
-
-            # 벽돌 제거 비율 계산
-            removal_ratio = bricks_removed / total_bricks
-
-            # 등급 조건
-            if time_in_seconds <= 300 and removal_ratio >= 1.0:  # 5분 이내, 모든 벽돌 제거
-                return "S"
-            elif time_in_seconds <= 420 and removal_ratio >= 0.9:  # 7분 이내, 90% 이상 제거
-                return "A"
-            elif time_in_seconds <= 600 and removal_ratio >= 0.5:  # 10분 이내, 절반 이상 제거
-                return "B"
-            else:  # 그 외
-                return "C"
-
-        # 게임 클리어 화면
-        def game_win(total_time, games):
-            global paused_total_time, paused_start_time, game_count
-
-            paused_total_time = 0
-            paused_start_time = 0
-            game_count = 0  # 게임 클리어 시 게임 횟수 초기화
-
-            # 총 벽돌 수와 제거된 벽돌 수
-            total_bricks = len(colors) * 12
-            bricks_removed = total_bricks - len(bricks)
-
-            # 등급 계산
-            grade = calculate_grade(total_time, bricks_removed, total_bricks)
-            # y_offset=-250: 텍스트 간 간격
-            # Game Clear 화면 이미지 로드
-            game_vict_image = pygame.image.load("game_vict.jpg").convert()
-            game_vict_image = pygame.transform.scale(game_vict_image, (width, height))
-            screen.blit(game_vict_image, (0, 0))  # Game Clear 이미지 표시
-            draw_centered_over_text(f"GAME CLEAR", y_offset=-150, size=62, color=(255, 215, 0), bg_color=(0, 0, 0), border_radius=30)
-            draw_centered_over_text(f"Score: {score}", y_offset=-80, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)
-            draw_centered_over_text(f"Time: {format_time(total_time)}", y_offset=-10, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)
-            draw_centered_over_text(f"Grade: {grade}", y_offset=60, size=62, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)  # 등급 표시
-            draw_centered_over_text("Press Space To Restart", y_offset=130, color=(255, 255, 255), bg_color=(0, 0, 0), border_radius=30)  # 박스 간 간격
-
-            pygame.display.flip()
-
-            waiting_for_restart = True
-            while waiting_for_restart:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            waiting_for_restart = False
-                            return True  # 게임을 재시작
-            return False
 
         # 아이템 그리기
         for item in items:
@@ -497,8 +658,8 @@ while True:
         score_text = font.render(f"Score: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
-        game_count_text = font.render(f"Game {game_count}", True, WHITE)  # 게임 번호 표시
-        screen.blit(game_count_text, (width - 150, 10))
+        stage_text = font.render(f"Stage {current_stage}", True, WHITE)  # 스테이지 번호 표시
+        screen.blit(stage_text, (width - 150, 10))
 
         time_text = font.render(format_time(current_time), True, WHITE)
         screen.blit(time_text, (width // 2 - 50, 10))
