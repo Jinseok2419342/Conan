@@ -527,21 +527,27 @@ while True:
             # 공이 파괴 불가능 벽돌과 충돌 처리
             for unbreakable_brick in unbreakable_bricks:
                 if ball.colliderect(unbreakable_brick):
-                    # 속도에 따른 충돌 방향 판별
-                    if abs(ball_speed[0]) > abs(ball_speed[1]):  # X축 속도가 더 강한 경우
-                        if ball_speed[0] > 0:  # 오른쪽에서 충돌
-                            ball.right = unbreakable_brick.left
-                            ball_speed[0] = -abs(ball_speed[0])  # X축 반사
-                        else:  # 왼쪽에서 충돌
+                    # 공과 벽돌의 중심 차이 계산
+                    dx = (ball.centerx - unbreakable_brick.centerx) / (unbreakable_brick.width / 2)
+                    dy = (ball.centery - unbreakable_brick.centery) / (unbreakable_brick.height / 2)
+
+                    # dx와 dy 중 절대값이 큰 방향을 기준으로 충돌 판단
+                    if abs(dx) > abs(dy):
+                        # 좌우 충돌
+                        if dx > 0:  # 오른쪽에서 충돌
                             ball.left = unbreakable_brick.right
-                            ball_speed[0] = abs(ball_speed[0])  # X축 반사
-                    else:  # Y축 속도가 더 강한 경우
-                        if ball_speed[1] > 0:  # 아래쪽에서 충돌
-                            ball.bottom = unbreakable_brick.top
-                            ball_speed[1] = -abs(ball_speed[1])  # Y축 반사
-                        else:  # 위쪽에서 충돌
+                            ball_speed[0] = abs(ball_speed[0])  # X축 속도를 양수로 (오른쪽으로)
+                        else:  # 왼쪽에서 충돌
+                            ball.right = unbreakable_brick.left
+                            ball_speed[0] = -abs(ball_speed[0])  # X축 속도를 음수로 (왼쪽으로)
+                    else:
+                        # 상하 충돌
+                        if dy > 0:  # 아래쪽에서 충돌
                             ball.top = unbreakable_brick.bottom
-                            ball_speed[1] = abs(ball_speed[1])  # Y축 반사
+                            ball_speed[1] = abs(ball_speed[1])  # Y축 속도를 양수로 (아래로)
+                        else:  # 위쪽에서 충돌
+                            ball.bottom = unbreakable_brick.top
+                            ball_speed[1] = -abs(ball_speed[1])  # Y축 속도를 음수로 (위로)
                     break  # 충돌 후 다른 벽돌은 검사하지 않음
 
             for brick in bricks[:]:
