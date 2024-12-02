@@ -507,10 +507,13 @@ while True:
                 ball_speed[0] *= scaling_factor
                 ball_speed[1] *= scaling_factor
 
-            if ball.left <= 0 or ball.right >= width:
-                ball_speed[0] = -ball_speed[0]
-            if ball.top <= 0:
-                ball_speed[1] = -ball_speed[1]
+            # 벽에 부딪히면 반사
+            if ball.left <= 0:  # 왼쪽 벽에 닿을 때
+                ball.left = 0 # 공을 왼쪽 벽 바로 오른쪽에 위치
+                ball_speed[0] = -ball_speed[0]  # X축 방향 반전
+            if ball.right >= width:  # 오른쪽 벽에 닿을 때
+                ball.right = width  # 공을 오른쪽 벽 바로 왼쪽에 위치
+                ball_speed[0] = -ball_speed[0]  # X축 방향 반전
 
             if ball.colliderect(paddle):
                 # 패들과 공 충돌 시 효과음 재생
