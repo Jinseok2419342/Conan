@@ -44,8 +44,8 @@ stage_cleared_image = pygame.image.load("stage_cleared.jpg").convert()
 stage_cleared_image = pygame.transform.scale(stage_cleared_image, (width, height))
 
 # 효과음 로드
-paddle_hit_sound = pygame.mixer.Sound("패들_효과음.mp3")
-brick_hit_sound = pygame.mixer.Sound("벽돌_효과음.mp3")
+paddle_hit_sound = pygame.mixer.Sound("paddle_sound.mp3")
+brick_hit_sound = pygame.mixer.Sound("brick_sound.mp3")
 
 # 공과 패들 설정
 initial_ball_speed = [6, -6]  # 공의 초기 속도를 조금 빠르게 설정
