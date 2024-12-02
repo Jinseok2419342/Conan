@@ -609,6 +609,7 @@ while True:
                                     if event.type == pygame.KEYDOWN:
                                         if event.key == pygame.K_SPACE:
                                             current_stage = 1  # 1스테이지로 리셋
+                                            reset_game(stages[current_stage - 1])
                                             waiting_for_restart = False
                             break
                         else:
