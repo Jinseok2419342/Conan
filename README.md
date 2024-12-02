@@ -20,26 +20,51 @@
 -----
 
 # 인게임 화면
-((( 추가 예정 ))))) 
-### **1. 시작 화면** 
+
+## **1. 시작 화면** 
 - 시작 화면에서는 "Press Space To Start" 메시지가 표시됩니다.
 - 플레이어는 스페이스바를 눌러 게임을 시작할 수 있습니다.
+<img src="https://github.com/user-attachments/assets/d5392003-e738-4da8-ae4c-46d7b6a75ee7" width="50%" height="50%">
 
-### **2. 플레이 화면**
+
+## **2. 플레이 화면**
 - 벽돌, 패들, 공이 화면에 표시되며 게임이 진행됩니다.
 - 화면 상단에는 점수, 경과 시간, 게임 횟수가 표시됩니다.
+<img src="https://github.com/user-attachments/assets/976beabb-dbdd-4bdc-a1dd-cde2c373c75e" width="50%" height="50%">
+<br><br>
+- 스테이지가 지날 수록 `여러번 충돌해야 깨지는 블록`들이 점점 더 많아집니다.
+<img src="https://github.com/user-attachments/assets/bb3014e3-ed65-43f3-8420-d00563c290b5" width="50%" height="50%">
 
-### **3. 게임 오버**
+
+
+## **3. 게임 오버**
 - 공이 모두 바닥에 떨어지면 "Game Over" 화면이 표시됩니다.
 - 플레이어는 스페이스바를 눌러 게임을 재시작할 수 있습니다.
+<img src="https://github.com/user-attachments/assets/d70bc3dd-c64d-496e-ac26-55b65b5869aa" width="50%" height="50%">
 
-### **4. 게임 클리어**
+
+## **4. 게임 클리어**
+
+### 스테이지 클리어
 - 모든 벽돌을 제거하면 "Game Clear" 화면이 표시됩니다.
-- 최종 점수와 경과 시간이 화면에 표시되며, 스페이스바를 눌러 게임을 재시작할 수 있습니다.
+- 최종 점수와 경과 시간이 화면에 표시되며, 스페이스바를 눌러 다음 스테이지를 진행할 수 있습니다.
+<img src="https://github.com/user-attachments/assets/7cdbd8d0-9124-4fc0-81c1-b724de8cc93e" width="50%" height="50%">
 
-### **4. 일시정지**
+<br>
+
+### 게임 클리어
+- 10스테이지를 클리어 시.
+- 게임이 완전히 클리어 됩니다.
+<img src="https://github.com/user-attachments/assets/fbeb0d38-2463-46fb-8dba-3deb8509fdf6" width="50%" height="50%">
+
+
+
+## **5. 일시정지**
 - 게임 도중 ESC 혹은 SPACE 키를 누르면 게임이 일시정지 됩니다.
 - 일시정지 동안 타이머는 흐르지 않으며 다시 ESC 또는 SPACE 키를 눌러서 다시 이어서 할 수 있습니다.
+<img src="https://github.com/user-attachments/assets/8c093c7b-2b11-409d-8090-4a2323382f1c" width="50%" height="50%">
+
+
 
 -----
 

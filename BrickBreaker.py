@@ -43,6 +43,9 @@ paused_image = pygame.transform.scale(paused_image, (width, height))
 stage_cleared_image = pygame.image.load("stage_cleared.jpg").convert()
 stage_cleared_image = pygame.transform.scale(stage_cleared_image, (width, height))
 
+# 효과음 로드
+paddle_hit_sound = pygame.mixer.Sound("paddle_sound.mp3")
+brick_hit_sound = pygame.mixer.Sound("brick_sound.mp3")
 
 # 공과 패들 설정
 initial_ball_speed = [6, -6]  # 공의 초기 속도를 조금 빠르게 설정
@@ -504,12 +507,17 @@ while True:
                 ball_speed[0] *= scaling_factor
                 ball_speed[1] *= scaling_factor
 
-            if ball.left <= 0 or ball.right >= width:
-                ball_speed[0] = -ball_speed[0]
-            if ball.top <= 0:
-                ball_speed[1] = -ball_speed[1]
+            # 벽에 부딪히면 반사
+            if ball.left <= 0:  # 왼쪽 벽에 닿을 때
+                ball.left = 0 # 공을 왼쪽 벽 바로 오른쪽에 위치
+                ball_speed[0] = -ball_speed[0]  # X축 방향 반전
+            if ball.right >= width:  # 오른쪽 벽에 닿을 때
+                ball.right = width  # 공을 오른쪽 벽 바로 왼쪽에 위치
+                ball_speed[0] = -ball_speed[0]  # X축 방향 반전
 
             if ball.colliderect(paddle):
+                # 패들과 공 충돌 시 효과음 재생
+                paddle_hit_sound.play()
                 ball.top = paddle.top - ball.height
                 # 최소 수직 속도를 보장하도록 수정
                 min_vertical_speed = 4  # 최소 수직 속도 설정
@@ -552,6 +560,8 @@ while True:
 
             for brick in bricks[:]:
                 if ball.colliderect(brick.rect):
+                    # 벽돌과 공 충돌 시 효과음 재생
+                    brick_hit_sound.play()
                     ball_speed[1] = -ball_speed[1]
                     brick.hits_remaining -= 1
                     if brick.hits_remaining <= 0:
