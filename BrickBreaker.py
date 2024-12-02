@@ -1,6 +1,18 @@
+
+import os
 import pygame
 import random
 import sys
+# 실행 환경에 맞는 리소스 경로 반환
+def resource_path(relative_path):
+    try:
+        # PyInstaller로 빌드된 exe 파일 내에서 리소스 경로
+        base_path = sys._MEIPASS
+    except AttributeError:
+        # 스크립트 실행 경로
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 # 초기화
 pygame.init()
@@ -29,23 +41,23 @@ paused_start_time = 0  # 일시정지 시작 시간을 기록
 paused_total_time = 0  # 일시정지 중 누적된 시간
 
 # 이미지 로드 및 투명도 설정
-background_image = pygame.image.load("background_image.jpeg").convert_alpha()  # 알파 채널 포함하여 로드
+background_image = pygame.image.load(resource_path("background_image.jpeg")).convert_alpha()  # 알파 채널 포함하여 로드
 background_image = pygame.transform.scale(background_image, (width, height))  # 화면 크기에 맞게 조정
 background_image.set_alpha(100)  # 투명도 설정 (0~255, 128은 50% 투명)
 
-start_screen_image = pygame.image.load("start_screen.jpg").convert()
+start_screen_image = pygame.image.load(resource_path("start_screen.jpg")).convert()
 start_screen_image = pygame.transform.scale(start_screen_image, (width, height))
 
 # 추가된 이미지 로드
-paused_image = pygame.image.load("paused.jpg").convert()
+paused_image = pygame.image.load(resource_path("paused.jpg")).convert()
 paused_image = pygame.transform.scale(paused_image, (width, height))
 
-stage_cleared_image = pygame.image.load("stage_cleared.jpg").convert()
+stage_cleared_image = pygame.image.load(resource_path("stage_cleared.jpg")).convert()
 stage_cleared_image = pygame.transform.scale(stage_cleared_image, (width, height))
 
 # 효과음 로드
-paddle_hit_sound = pygame.mixer.Sound("paddle_sound.mp3")
-brick_hit_sound = pygame.mixer.Sound("brick_sound.mp3")
+paddle_hit_sound = pygame.mixer.Sound(resource_path("paddle_sound.mp3"))
+brick_hit_sound = pygame.mixer.Sound(resource_path("brick_sound.mp3"))
 
 # 공과 패들 설정
 initial_ball_speed = [6, -6]  # 공의 초기 속도를 조금 빠르게 설정
@@ -337,7 +349,7 @@ def game_over_screen():
     paused_start_time = 0
 
     # Game Over 화면 이미지 로드
-    game_over_image = pygame.image.load("Game_Over.jpg").convert()
+    game_over_image = pygame.image.load(resource_path("Game_Over.jpg")).convert()
     game_over_image = pygame.transform.scale(game_over_image, (width, height))
 
     screen.blit(game_over_image, (0, 0))  # Game Over 이미지 표시
@@ -429,7 +441,7 @@ while True:
     if current_stage > 10:
         # 전체 게임 클리어 시 처리
         # full_clear.jpg 이미지를 표시하고 스페이스바 누르면 다시 1스테이지로
-        full_clear_image = pygame.image.load("full_clear.jpg").convert()
+        full_clear_image = pygame.image.load(resource_path("full_clear.jpg")).convert()
         full_clear_image = pygame.transform.scale(full_clear_image, (width, height))
         screen.blit(full_clear_image, (0, 0))
         pygame.display.flip()
@@ -583,7 +595,7 @@ while True:
                         if current_stage == 10:
                             # 전체 게임 클리어 처리
                             # 'full_clear.jpg'를 화면에 띄우고 스페이스바 누르면 1스테이지로
-                            full_clear_image = pygame.image.load("full_clear.jpg").convert()
+                            full_clear_image = pygame.image.load(resource_path("full_clear.jpg")).convert()
                             full_clear_image = pygame.transform.scale(full_clear_image, (width, height))
                             screen.blit(full_clear_image, (0, 0))
                             pygame.display.flip()
