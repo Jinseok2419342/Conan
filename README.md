@@ -24,7 +24,7 @@
 ## **1. 시작 화면** 
 - 시작 화면에서는 "Press Space To Start" 메시지가 표시됩니다.
 - 플레이어는 스페이스바를 눌러 게임을 시작할 수 있습니다.
-<img src="https://github.com/user-attachments/assets/d5392003-e738-4da8-ae4c-46d7b6a75ee7" width="50%" height="50%">
+<img src="https://github.com/user-attachments/assets/e79e679b-6f49-4b87-9fe1-a6ea10679e9b" width="50%" height="50%">
 
 
 ## **2. 플레이 화면**
@@ -32,7 +32,9 @@
 - 화면 상단에는 점수, 경과 시간, 게임 횟수가 표시됩니다.
 <img src="https://github.com/user-attachments/assets/976beabb-dbdd-4bdc-a1dd-cde2c373c75e" width="50%" height="50%">
 <br><br>
-- 스테이지가 지날 수록 `여러번 충돌해야 깨지는 블록`들이 점점 더 많아집니다.
+
+- 스테이지가 지날 수록 여러번 충돌해야 깨지는 `강화 벽돌`들이 점점 더 많아집니다.  
+- (해당 `강화 벽돌`들은 테두리에만 연하게 회색 보호막이 있습니다)
 <img src="https://github.com/user-attachments/assets/bb3014e3-ed65-43f3-8420-d00563c290b5" width="50%" height="50%">
 
 
@@ -47,7 +49,7 @@
 
 ### 스테이지 클리어
 - 모든 벽돌을 제거하면 "Game Clear" 화면이 표시됩니다.
-- 최종 점수와 경과 시간이 화면에 표시되며, 스페이스바를 눌러 다음 스테이지를 진행할 수 있습니다.
+- 스페이스바를 눌러 다음 스테이지를 진행할 수 있습니다.
 <img src="https://github.com/user-attachments/assets/7cdbd8d0-9124-4fc0-81c1-b724de8cc93e" width="50%" height="50%">
 
 <br>
@@ -102,7 +104,7 @@
 ### **3. 스테이지**
 - 모든 벽돌을 부수면 다음 스테이지로 이동하게 됩니다.
 - 총 10스테이지까지 있습니다.
-- 스테이지가 진행될 수록 `여러번 타격해야 사라지는 벽돌` 수가 많아집니다.
+- 스테이지가 진행될 수록 여러번 타격해야 사라지는 `강화 벽돌` 수가 많아집니다.
 - 스테이지가 진행될 수록 공의 최대 속도가 더 빨라집니다.
 
 ### **4. 점수 및 시간**
