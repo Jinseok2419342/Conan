@@ -14,8 +14,8 @@
 
 
 # exe 다운로드 (For Windows)  
-  
-최신 릴리즈를 다운로드하려면 [여기](https://github.com/Jinseok2419342/Conan/releases/tag/1.0.0)를 클릭하세요.
+
+### [다운로드 (최신 릴리즈)](https://github.com/Jinseok2419342/Conan/releases/tag/1.1.0)
 
 -----
 
