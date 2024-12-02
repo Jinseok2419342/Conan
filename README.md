@@ -37,6 +37,12 @@
 - (해당 `강화 벽돌`들은 테두리에만 연하게 회색 보호막이 있습니다)
 <img src="https://github.com/user-attachments/assets/bb3014e3-ed65-43f3-8420-d00563c290b5" width="50%" height="50%">
 
+<br><br>
+- 노란색 네모는 패들 크기 증가
+- 노란색 원은 공 갯수 추가
+- 회색 네모는 랜덤 위치에 절대 깨지지 않는 블록 추가
+<img src="https://github.com/user-attachments/assets/916c8876-80a8-4393-a7c4-5c58cedafeb8" width="50%" height="50%">
+
 
 
 ## **3. 게임 오버**
