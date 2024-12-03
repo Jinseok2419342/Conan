@@ -3,15 +3,25 @@
 이 프로젝트는 **블록깨기 게임**을 **Pygame**을 사용해서 만들었습니다.
 
 ## 목차
+- [멤버](#멤버)
 - [다운로드](#exe-다운로드-for-windows)
 - [인게임 화면](#인게임-화면)
 - [소개](#소개)
 - [ChatGPT가 생성한 최초 버전](#최초-버전)
 - [조작법](#조작법)
-- [멤버](#멤버)
 
 -----
+## 멤버
 
+- 장진석 20241499
+- 정현국 20241502
+- 고지호 20241505
+- 최은성 20242531
+- 김건우 20241493
+- 김수한 20200915
+- 양경윤 20222589
+
+-------
 
 # exe 다운로드 (For Windows)  
 
@@ -143,12 +153,3 @@ ChatGPT가 생성한 최초 버전입니다. ( gif 이미지 )
 
 -----
 
-## 멤버
-
-- [장진석](https://github.com/Jinseok2419342)
-- [정현국](https://github.com/ehfl21)
-- [고지호](https://github.com/jiho050718)
-- [최은성](https://github.com/eunsg1)
-- [김건우](https://github.com/urobo12)
-- [김수한](https://github.com/suhan1029)
-- [양경윤](https://github.com/kyungyunie)
