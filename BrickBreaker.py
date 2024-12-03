@@ -493,6 +493,10 @@ while True:
                         if paused_start_time != 0:  # 일시정지 시작이 기록된 경우만 처리
                             paused_total_time += pygame.time.get_ticks() - paused_start_time
                             paused_start_time = 0
+                if event.key == pygame.K_f:  # 'f' 키를 누르면
+                    current_stage = 10  # 현재 스테이지를 10으로 변경
+                    reset_game(stages[current_stage - 1])  # 10스테이지로 초기화
+                    play_time_start = pygame.time.get_ticks()  # 시간을 초기화
 
         # 일시정지 상태 처리
         if paused:
